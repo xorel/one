@@ -50,6 +50,7 @@ require 'azure_mgmt_compute'
 require 'az_client'
 require 'az_helper'
 require 'az_rgroup'
+require 'az_vm'
 
 
 # Util lib
