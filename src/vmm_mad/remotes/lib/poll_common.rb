@@ -115,6 +115,11 @@ def print_all_vm_template(hypervisor)
         string << "  ID=#{number},\n"
         string << "  DEPLOY_ID=#{name},\n"
         string << %Q(  VM_NAME="#{vm_name}",\n) if vm_name
+        
+	if data[:mon_interval]
+            string << "  MONITOR_INTERVAL=#{data[:mon_interval]},\n"
+            data.delete(:mon_interval)
+        end
 
         if data[:template]
             string << %Q(  IMPORT_TEMPLATE="#{data[:template]}",\n)

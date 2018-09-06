@@ -145,6 +145,11 @@ module KVM
             values[:memory] = [resident_mem, max_mem].max
 
             xml = dump_xml(name)
+	#puts "---------------"
+	#puts "xml = #{xml}"
+	#puts "---------------"
+
+            #values[:mon_interval] = parse(xml)
 
             values.merge!(get_interface_statistics(name, xml))
 
