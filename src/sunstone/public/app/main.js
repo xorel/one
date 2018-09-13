@@ -17,21 +17,21 @@
 require.config({
   paths: {
     /* Almond */
-    'almond': '../bower_components/almond/almond',
+    'almond': '../node_modules/@bower_components/almond/almond',
 
     /* jQuery */
-    'jquery': '../bower_components/jquery/dist/jquery',
-    'jquery-ui': '../bower_components/jquery-ui/jquery-ui',
+    'jquery': '../node_modules/@bower_components/jquery/dist/jquery',
+    'jquery-ui': '../node_modules/@bower_components/jquery-ui/jquery-ui',
 
     /* DataTables */
-    'datatables.net': '../bower_components/datatables/media/js/jquery.dataTables',
-    'datatables.foundation': '../bower_components/datatables/media/js/dataTables.foundation',
+    'datatables.net': '../node_modules/@bower_components/datatables/media/js/jquery.dataTables',
+    'datatables.foundation': '../node_modules/@bower_components/datatables/media/js/dataTables.foundation',
 
     /* DataTables */
-    'jgrowl': '../bower_components/jgrowl/jquery.jgrowl',
+    'jgrowl': '../node_modules/@bower_components/jgrowl/jquery.jgrowl',
 
     /* Foundation */
-    'foundation': '../bower_components/foundation-sites/dist/foundation',
+    'foundation': '../node_modules/@bower_components/foundation-sites/dist/foundation',
     //'foundation.core': '../bower_components/foundation/js/foundation/foundation',
     //'foundation.abide': '../bower_components/foundation/js/foundation/foundation.abide',
     //'foundation.accordion': '../bower_components/foundation/js/foundation/foundation.accordion',
@@ -51,72 +51,72 @@ require.config({
     //'foundation.topbar': '../bower_components/foundation/js/foundation/foundation.topbar',
 
     /* Handlebars */
-    'hbs': '../bower_components/require-handlebars-plugin/hbs',
+    'hbs': '../node_modules/@bower_components/require-handlebars-plugin/hbs',
 
     /* Resumable */
-    'resumable': '../bower_components/resumablejs/resumable',
+    'resumable': '../node_modules/@bower_components/resumablejs/resumable',
 
     /* Flot Graphs */
-    'flot': '../bower_components/flot/jquery.flot',
-    'flot.stack': '../bower_components/flot/jquery.flot.stack',
-    'flot.navigate': '../bower_components/flot/jquery.flot.navigate',
-    'flot.canvas': '../bower_components/flot/jquery.flot.canvas',
-    'flot.resize': '../bower_components/flot/jquery.flot.resize',
-    'flot.time': '../bower_components/flot/jquery.flot.time',
-    'flot.tooltip': '../bower_components/flot.tooltip/js/jquery.flot.tooltip',
+    'flot': '../node_modules/@bower_components/flot/jquery.flot',
+    'flot.stack': '../node_modules/@bower_components/flot/jquery.flot.stack',
+    'flot.navigate': '../node_modules/@bower_components/flot/jquery.flot.navigate',
+    'flot.canvas': '../node_modules/@bower_components/flot/jquery.flot.canvas',
+    'flot.resize': '../node_modules/@bower_components/flot/jquery.flot.resize',
+    'flot.time': '../node_modules/@bower_components/flot/jquery.flot.time',
+    'flot.tooltip': '../node_modules/@bower_components/flot.tooltip/js/jquery.flot.tooltip',
 
     /* VNC */
-    'vnc-util': '../bower_components/no-vnc/include/util',
-    'vnc-webutil': '../bower_components/no-vnc/include/webutil',
-    'vnc-base64': '../bower_components/no-vnc/include/base64',
-    'vnc-websock': '../bower_components/no-vnc/include/websock',
-    'vnc-des': '../bower_components/no-vnc/include/des',
-    'vnc-keysymdef': '../bower_components/no-vnc/include/keysymdef',
-    'vnc-keyboard': '../bower_components/no-vnc/include/keyboard',
-    'vnc-input': '../bower_components/no-vnc/include/input',
-    'vnc-display': '../bower_components/no-vnc/include/display',
-    'vnc-jsunzip': '../bower_components/no-vnc/include/jsunzip',
-    'vnc-rfb': '../bower_components/no-vnc/include/rfb',
-    'vnc-keysym': '../bower_components/no-vnc/include/keysym',
+    'vnc-util': '../node_modules/@bower_components/no-vnc/include/util',
+    'vnc-webutil': '../node_modules/@bower_components/no-vnc/include/webutil',
+    'vnc-base64': '../node_modules/@bower_components/no-vnc/include/base64',
+    'vnc-websock': '../node_modules/@bower_components/no-vnc/include/websock',
+    'vnc-des': '../node_modules/@bower_components/no-vnc/include/des',
+    'vnc-keysymdef': '../node_modules/@bower_components/no-vnc/include/keysymdef',
+    'vnc-keyboard': '../node_modules/@bower_components/no-vnc/include/keyboard',
+    'vnc-input': '../node_modules/@bower_components/no-vnc/include/input',
+    'vnc-display': '../node_modules/@bower_components/no-vnc/include/display',
+    'vnc-jsunzip': '../node_modules/@bower_components/no-vnc/include/jsunzip',
+    'vnc-rfb': '../node_modules/@bower_components/no-vnc/include/rfb',
+    'vnc-keysym': '../node_modules/@bower_components/no-vnc/include/keysym',
 
     /* Spice */
-    'spice-main': '../bower_components/spice-html5/main',
-    'spice-spicearraybuffer': '../bower_components/spice-html5/spicearraybuffer',
-    'spice-enums': '../bower_components/spice-html5/enums',
-    'spice-atKeynames': '../bower_components/spice-html5/atKeynames',
-    'spice-utils': '../bower_components/spice-html5/utils',
-    'spice-png': '../bower_components/spice-html5/png',
-    'spice-lz': '../bower_components/spice-html5/lz',
-    'spice-quic': '../bower_components/spice-html5/quic',
-    'spice-bitmap': '../bower_components/spice-html5/bitmap',
-    'spice-spicedataview': '../bower_components/spice-html5/spicedataview',
-    'spice-spicetype': '../bower_components/spice-html5/spicetype',
-    'spice-spicemsg': '../bower_components/spice-html5/spicemsg',
-    'spice-wire': '../bower_components/spice-html5/wire',
-    'spice-spiceconn': '../bower_components/spice-html5/spiceconn',
-    'spice-display': '../bower_components/spice-html5/display',
-    'spice-inputs': '../bower_components/spice-html5/inputs',
-    'spice-webm': '../bower_components/spice-html5/webm',
-    'spice-playback': '../bower_components/spice-html5/playback',
-    'spice-simulatecursor': '../bower_components/spice-html5/simulatecursor',
-    'spice-cursor': '../bower_components/spice-html5/cursor',
-    'spice-jsbn': '../bower_components/spice-html5/thirdparty/jsbn',
-    'spice-rsa': '../bower_components/spice-html5/thirdparty/rsa',
-    'spice-prng4': '../bower_components/spice-html5/thirdparty/prng4',
-    'spice-rng': '../bower_components/spice-html5/thirdparty/rng',
-    'spice-sha1': '../bower_components/spice-html5/thirdparty/sha1',
-    'spice-ticket': '../bower_components/spice-html5/ticket',
-    'spice-resize': '../bower_components/spice-html5/resize',
-    'spice-filexfer': '../bower_components/spice-html5/filexfer',
+    'spice-main': '../node_modules/@bower_components/spice-html5/main',
+    'spice-spicearraybuffer': '../node_modules/@bower_components/spice-html5/spicearraybuffer',
+    'spice-enums': '../node_modules/@bower_components/spice-html5/enums',
+    'spice-atKeynames': '../node_modules/@bower_components/spice-html5/atKeynames',
+    'spice-utils': '../node_modules/@bower_components/spice-html5/utils',
+    'spice-png': '../node_modules/@bower_components/spice-html5/png',
+    'spice-lz': '../node_modules/@bower_components/spice-html5/lz',
+    'spice-quic': '../node_modules/@bower_components/spice-html5/quic',
+    'spice-bitmap': '../node_modules/@bower_components/spice-html5/bitmap',
+    'spice-spicedataview': '../node_modules/@bower_components/spice-html5/spicedataview',
+    'spice-spicetype': '../node_modules/@bower_components/spice-html5/spicetype',
+    'spice-spicemsg': '../node_modules/@bower_components/spice-html5/spicemsg',
+    'spice-wire': '../node_modules/@bower_components/spice-html5/wire',
+    'spice-spiceconn': '../node_modules/@bower_components/spice-html5/spiceconn',
+    'spice-display': '../node_modules/@bower_components/spice-html5/display',
+    'spice-inputs': '../node_modules/@bower_components/spice-html5/inputs',
+    'spice-webm': '../node_modules/@bower_components/spice-html5/webm',
+    'spice-playback': '../node_modules/@bower_components/spice-html5/playback',
+    'spice-simulatecursor': '../node_modules/@bower_components/spice-html5/simulatecursor',
+    'spice-cursor': '../node_modules/@bower_components/spice-html5/cursor',
+    'spice-jsbn': '../node_modules/@bower_components/spice-html5/thirdparty/jsbn',
+    'spice-rsa': '../node_modules/@bower_components/spice-html5/thirdparty/rsa',
+    'spice-prng4': '../node_modules/@bower_components/spice-html5/thirdparty/prng4',
+    'spice-rng': '../node_modules/@bower_components/spice-html5/thirdparty/rng',
+    'spice-sha1': '../node_modules/@bower_components/spice-html5/thirdparty/sha1',
+    'spice-ticket': '../node_modules/@bower_components/spice-html5/ticket',
+    'spice-resize': '../node_modules/@bower_components/spice-html5/resize',
+    'spice-filexfer': '../node_modules/@bower_components/spice-html5/filexfer',
 
     /* vis.js */
-    'vis': '../bower_components/vis/dist/vis.min',
+    'vis': '../node_modules/@bower_components/vis/dist/vis.min',
 
     /* navigo */
-    'Navigo': '../bower_components/navigo/lib/navigo.min',
+    'Navigo': '../node_modules/@bower_components/navigo/lib/navigo.min',
 
     /* sprintf */
-    'sprintf': '../bower_components/sprintf/dist/sprintf.min'
+    'sprintf': '../node_modules/@bower_components/sprintf/dist/sprintf.min'
   },
   shim: {
     /* Tabs */

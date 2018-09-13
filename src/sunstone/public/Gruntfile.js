@@ -20,7 +20,7 @@ module.exports = function(grunt) {
 
     sass: {
       options: {
-        includePaths: ['bower_components/foundation-sites/scss']
+        includePaths: ['node_modules/@bower_components/foundation-sites/scss']
       },
       dist: {
         options: {

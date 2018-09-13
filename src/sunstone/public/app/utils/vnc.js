@@ -15,7 +15,7 @@
 /* -------------------------------------------------------------------------- */
 
 define(function(require) {
-  INCLUDE_URI = "bower_components/no-vnc/include/";
+  INCLUDE_URI = "node_modules/@bower_components/no-vnc/include/";
   require('vnc-util');
   require('vnc-webutil');
   require('vnc-base64');

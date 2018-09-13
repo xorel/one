@@ -15,7 +15,7 @@
 /* -------------------------------------------------------------------------- */
 
 define(function(require) {
-  require('../bower_components/jquery/dist/jquery.min');
+  require('../node_modules/@bower_components/jquery/dist/jquery.min');
   var OpenNebulaAuth = require('opennebula/auth');
 
   function auth_success(req, response) {
