@@ -107,7 +107,7 @@
 
 
     <% if $conf[:env] == 'dev' %>
-      <script src="bower_components/requirejs/require.js" data-main="app/main"></script>
+      <script src="node_modules/@bower_components/requirejs/require.js" data-main="app/main"></script>
     <% else %>
       <script src="dist/main.js?v=<%= OpenNebula::VERSION %>"></script>
     <% end %>
