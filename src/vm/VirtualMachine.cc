@@ -953,7 +953,7 @@ int VirtualMachine::insert(SqlDB * db, string& error_str)
     // Get network leases
     // ------------------------------------------------------------------------
 
-    rc = get_network_leases(error_str);
+    rc = get_network_leases(error_str, false);
 
     if ( rc != 0 )
     {
@@ -1002,7 +1002,7 @@ int VirtualMachine::insert(SqlDB * db, string& error_str)
     // Parse the context & requirements
     // -------------------------------------------------------------------------
 
-    rc = parse_context(error_str);
+    rc = parse_context(error_str, false);
 
     if ( rc != 0 )
     {
@@ -2799,7 +2799,7 @@ int VirtualMachine::updateconf(VirtualMachineTemplate& tmpl, string &err)
         obj_template->remove(context_bck);
         obj_template->set(context_new);
 
-        if ( parse_context(err) != 0 )
+        if ( parse_context(err, true) != 0 )
         {
             obj_template->erase("CONTEXT");
             obj_template->set(context_bck);
@@ -3056,7 +3056,7 @@ int VirtualMachine::clear_saveas_state()
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-int VirtualMachine::get_network_leases(string& estr)
+int VirtualMachine::get_network_leases(string& estr, bool only_auto)
 {
     /* ---------------------------------------------------------------------- */
     /* Get the NIC attributes:                                                */
@@ -3101,7 +3101,7 @@ int VirtualMachine::get_network_leases(string& estr)
 
     VectorAttribute * nic_default = obj_template->get("NIC_DEFAULT");
 
-    if (nics.get_network_leases(oid, uid, anics, nic_default, sgs, estr) == -1)
+    if (nics.get_network_leases(oid, uid, anics, nic_default, sgs, estr, only_auto) == -1)
     {
         return -1;
     }

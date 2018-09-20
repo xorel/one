@@ -130,6 +130,17 @@ void VirtualMachineNic::authorize(PoolObjectSQL::ObjectType ot, int uid,
 
     set<int> sgroups;
 
+    int has_net_mode;
+    string net_mode = "";
+
+    has_net_mode = this->vector_value("NETWORK_MODE", net_mode);
+    one_util::toupper(net_mode);
+
+    if ( has_net_mode && net_mode == "AUTO")
+    {
+        return;
+    }
+
     get_security_groups(sgroups);
 
     vnpool->authorize_nic(ot, this, uid, ar, sgroups, check_lock);
@@ -175,7 +186,7 @@ const char * VirtualMachineNics::NIC_ID_NAME = "NIC_ID";
 
 int VirtualMachineNics::get_network_leases(int vm_id, int uid,
         vector<Attribute *> nics, VectorAttribute * nic_default,
-        vector<VectorAttribute*>& sgs, std::string& error_str)
+        vector<VectorAttribute*>& sgs, std::string& error_str, bool only_auto)
 {
     Nebula& nd = Nebula::instance();
     VirtualNetworkPool * vnpool = nd.get_vnpool();
@@ -185,6 +196,8 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
 
     vector<Attribute*>::iterator it;
     int nic_id;
+    string net_mode = "";
+    int has_net_mode;
 
     /* ---------------------------------------------------------------------- */
     /* Get the interface network information                                  */
@@ -194,20 +207,32 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
         VectorAttribute * vnic  = static_cast<VectorAttribute *>(*it);
         VirtualMachineNic * nic = new VirtualMachineNic(vnic, nic_id);
 
-        if ( nic_default != 0 )
+        has_net_mode = vnic->vector_value("NETWORK_MODE", net_mode); // !0 = true
+        one_util::toupper(net_mode);
+
+        if ( ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0 ) ||
+            ( only_auto && ( has_net_mode == 0 && net_mode == "AUTO" ) ) )
         {
-            nic->merge(nic_default, false);
-        }
+            if ( nic_default != 0 )
+            {
+                nic->merge(nic_default, false);
+            }
 
-        if ( vnpool->nic_attribute(PoolObjectSQL::VM, nic, nic_id, uid,
-                vm_id, error_str) == -1 )
+            if ( vnpool->nic_attribute(PoolObjectSQL::VM, nic, nic_id, uid,
+                    vm_id, error_str) == -1 )
+            {
+                return -1;
+            }
+
+            nic->get_security_groups(sg_ids);
+
+            add_attribute(nic, nic->get_nic_id());
+        }
+        else
         {
-            return -1;
+            nic->replace("NIC_ID", nic_id);
+            add_attribute(nic, nic_id);
         }
-
-        nic->get_security_groups(sg_ids);
-
-        add_attribute(nic, nic->get_nic_id());
     }
 
     /* ---------------------------------------------------------------------- */

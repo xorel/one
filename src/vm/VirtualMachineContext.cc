@@ -80,7 +80,7 @@ const std::vector<ContextVariable> NETWORK6_CONTEXT = {
 /* -------------------------------------------------------------------------- */
 
 int VirtualMachine::generate_context(string &files, int &disk_id,
-        const string& token_password)
+        const string& token_password, bool only_auto)
 {
     ofstream file;
     string   files_ds, error_str;
@@ -106,13 +106,18 @@ int VirtualMachine::generate_context(string &files, int &disk_id,
     }
 
     //Generate dynamic context attributes
-    if ( generate_network_context(context, error_str) != 0 )
+    if ( generate_network_context(context, error_str, only_auto) != 0 )
     {
         ostringstream oss;
 
         oss << "Cannot parse network context:: " << error_str;
         log("VM", Log::ERROR, oss);
         return -1;
+    }
+
+    if ( only_auto )
+    {
+        return 1;
     }
 
     file.open(history->context_file.c_str(),ios::out);
@@ -276,9 +281,12 @@ static void parse_context_network(const std::vector<ContextVariable>& cvars,
 
 
 int VirtualMachine::generate_network_context(VectorAttribute* context,
-        string& error_str)
+        string& error_str, bool only_auto)
 {
     bool net_context;
+    string net_mode = "";
+    int has_net_mode;
+    bool all_nets_mode_auto = true;
 
     context->vector_value("NETWORK", net_context);
 
@@ -304,32 +312,43 @@ int VirtualMachine::generate_network_context(VectorAttribute* context,
 
     for(int i=0; i<num_vatts; i++)
     {
-        parse_context_network(NETWORK_CONTEXT, &tmp_context, vatts[i]);
-        parse_context_network(NETWORK6_CONTEXT, &tmp_context, vatts[i]);
+        has_net_mode = vatts[i]->vector_value("NETWORK_MODE", net_mode); // !0 = true
+        one_util::toupper(net_mode);
+
+        if ( ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0) ||
+            ( only_auto && ( has_net_mode == 0 && net_mode == "AUTO" ) ) )
+        {
+            parse_context_network(NETWORK_CONTEXT, &tmp_context, vatts[i]);
+            parse_context_network(NETWORK6_CONTEXT, &tmp_context, vatts[i]);
+            all_nets_mode_auto = false;
+        }
     }
 
-    str = tmp_context.marshall();
-
-    if (str == 0)
+    if ( !all_nets_mode_auto )
     {
-        error_str = "Internal error generating network context";
-        return -1;
+        str = tmp_context.marshall();
+
+        if (str == 0)
+        {
+            error_str = "Internal error generating network context";
+            return -1;
+        }
+
+        rc = parse_template_attribute(*str, parsed, error_str);
+
+        delete str;
+
+        if (rc != 0)
+        {
+            return -1;
+        }
+
+        tmp_context.clear();
+
+        tmp_context.unmarshall(parsed);
+
+        context->merge(&tmp_context, true);
     }
-
-    rc = parse_template_attribute(*str, parsed, error_str);
-
-    delete str;
-
-    if (rc != 0)
-    {
-        return -1;
-    }
-
-    tmp_context.clear();
-
-    tmp_context.unmarshall(parsed);
-
-    context->merge(&tmp_context, true);
 
     return 0;
 }
@@ -437,7 +456,7 @@ int VirtualMachine::generate_token_context(VectorAttribute * context, string& e)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-int VirtualMachine::parse_context(string& error_str)
+int VirtualMachine::parse_context(string& error_str, bool only_auto)
 {
     VectorAttribute * context = obj_template->get("CONTEXT");
 
@@ -454,7 +473,7 @@ int VirtualMachine::parse_context(string& error_str)
     // Add network context and parse variables
     // -------------------------------------------------------------------------
     if (parse_context_variables(&context, error_str) == -1 ||
-            generate_network_context(context, error_str) == -1 )
+            generate_network_context(context, error_str, only_auto) == -1 )
     {
         return -1;
     }

@@ -1151,9 +1151,11 @@ public:
      *    @param  files space separated list of paths to be included in the CBD
      *    @param  disk_id CONTEXT/DISK_ID attribute value
      *    @param  password Password to encrypt the token, if it is set
+     *    @param  only_auto boolean to generate context only for vnets
+     *            with NETWORK_MODE = auto
      *    @return -1 in case of error, 0 if the VM has no context, 1 on success
      */
-    int generate_context(string &files, int &disk_id, const string& password);
+    int generate_context(string &files, int &disk_id, const string& password, bool only_auto);
 
     /**
      * Returns the CREATED_BY template attribute, or the uid if it does not exist
@@ -1940,9 +1942,11 @@ private:
      *  netowrking updates.
      *    @param context attribute of the VM
      *    @param error string if any
+     *    @param  only_auto boolean to generate context only for vnets 
+     *            with NETWORK_MODE = auto
      *    @return 0 on success
      */
-    int generate_network_context(VectorAttribute * context, string& error);
+    int generate_network_context(VectorAttribute * context, string& error, bool only_auto);
 
     /**
      *  Deletes the NETWORK related CONTEXT section for the given nic, i.e.
@@ -1971,9 +1975,11 @@ private:
      *  Parse the "CONTEXT" attribute of the template by substituting
      *  $VARIABLE, $VARIABLE[ATTR] and $VARIABLE[ATTR, ATTR = VALUE]
      *    @param error_str Returns the error reason, if any
+     *    @param  only_auto boolean to parse only the context for vnets 
+     *            with NETWORK_MODE = auto
      *    @return 0 on success
      */
-    int parse_context(string& error_str);
+    int parse_context(string& error_str, bool only_auto);
 
     /**
      * Parses the current contents of the context vector attribute, without
@@ -1991,9 +1997,11 @@ private:
     // -------------------------------------------------------------------------
     /**
      *  Get all network leases for this Virtual Machine
+     *  @param  only_auto boolean to get context only for vnets
+     *          with NETWORK_MODE = auto
      *  @return 0 if success
      */
-    int get_network_leases(string &error_str);
+    int get_network_leases(string &error_str, bool only_auto);
 
     /**
      *  Get all disk images for this Virtual Machine

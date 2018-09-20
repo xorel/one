@@ -244,11 +244,13 @@ public:
      *  @param nic_default attribute, 0 if none
      *  @param sgs list of SG rules to add to the VM for this NICs
      *  @param error_str Returns the error reason, if any
+     *  @param only_auto boolean to generate context only for vnets
+     *         with NETWORK_MODE = auto
      *  @return 0 if success
      */
     int get_network_leases(int vm_id, int uid, std::vector<Attribute *> nics,
             VectorAttribute * nic_default, std::vector<VectorAttribute *>& sgs,
-            std::string& estr);
+            std::string& estr, bool only_auto);
 
     /**
      *  Release all the network leases and SG associated to the set
