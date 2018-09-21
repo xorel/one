@@ -519,7 +519,7 @@ int TransferManager::prolog_context_command(
 {
     string  files;
 
-    int rc = vm->generate_context(files, disk_id, token_password, true);
+    int rc = vm->generate_context(files, disk_id, token_password, false);
 
     if ( rc != 1 ) // 0 = no context, -1 = error
     {
