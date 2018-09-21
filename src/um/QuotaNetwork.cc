@@ -35,6 +35,8 @@ bool QuotaNetwork::check(PoolObjectSQL::ObjectType otype, Template * tmpl,
     string net_id;
     int num;
     bool uses_lease;
+    string net_mode;
+    int has_net_mode;
 
     map<string, float> net_request;
 
@@ -44,6 +46,14 @@ bool QuotaNetwork::check(PoolObjectSQL::ObjectType otype, Template * tmpl,
 
     for (int i = 0 ; i < num ; i++)
     {
+        has_net_mode = nic[i]->vector_value("NETWORK_MODE", net_mode);
+        one_util::toupper(net_mode);
+
+        if ( has_net_mode && net_mode == "AUTO")
+        {
+            continue;
+        }
+
         net_id = nic[i]->vector_value("NETWORK_ID");
 
         uses_lease = true;
