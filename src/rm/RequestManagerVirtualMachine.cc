@@ -735,18 +735,20 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
     DatastorePool * dspool = nd.get_dspool();
 
     VirtualMachine * vm;
+    VirtualMachineTemplate  tmpl;
 
     string hostname;
     string vmm_mad;
     int    cluster_id;
     bool   is_public_cloud;
 
-    PoolObjectAuth host_perms, ds_perms;
+    PoolObjectAuth host_perms, ds_perms, vm_perms;
     PoolObjectAuth * auth_ds_perms;
 
     string tm_mad;
 
     bool auth = false;
+    int rc;
 
     // ------------------------------------------------------------------------
     // Get request parameters and information about the target host
@@ -756,6 +758,7 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
     int  hid     = xmlrpc_c::value_int(paramList.getInt(2));
     bool enforce = false;
     int  ds_id   = -1;
+    string  str_tmpl = "";
 
     if ( paramList.size() > 3 )
     {
@@ -765,6 +768,22 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
     if ( paramList.size() > 4 )
     {
         ds_id = xmlrpc_c::value_int(paramList.getInt(4));
+    }
+
+    if ( paramList.size() > 5 )
+    {
+        str_tmpl = xmlrpc_c::value_string(paramList.getString(5));
+    }
+
+    // -------------------------------------------------------------------------
+    // Parse NIC template
+    // -------------------------------------------------------------------------
+    rc = tmpl.parse_str_or_xml(str_tmpl, att.resp_msg);
+
+    if ( rc != 0 )
+    {
+        failure_response(INTERNAL, att);
+        return;
     }
 
     if (get_host_information(hid,
@@ -795,7 +814,52 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
         ds_id = vm->get_ds_id();
     }
 
+    vm->get_permissions(vm_perms);
+
     vm->unlock();
+
+    AuthRequest ar(att.uid, att.group_ids);
+
+    ar.add_auth(AuthRequest::MANAGE, vm_perms);
+
+    VirtualMachine::set_auth_request(att.uid, ar, &tmpl, true);
+
+    if (UserPool::authorize(ar) == -1)
+    {
+        att.resp_msg = ar.message;
+        failure_response(AUTHORIZATION, att);
+        return;
+    }
+
+    RequestAttributes att_quota(vm_perms.uid, vm_perms.gid, att);
+
+    if (!att.is_admin())
+    {
+        string aname;
+
+        if (tmpl.check_restricted(aname))
+        {
+            att.resp_msg = "NIC includes a restricted attribute " + aname;
+            return;
+        }
+    }
+
+    if (quota_authorization(&tmpl, Quotas::NETWORK, att_quota,
+                att.resp_msg) == false)
+    {
+        failure_response(AUTHORIZATION, att);
+        return;
+    }
+
+    VirtualMachineNics::nic_iterator nic;
+    VirtualMachineNics tnics(tmpl);
+    VirtualMachineNic * nic;
+
+    for( nic = tnics.begin(); nic != tnics.end(); ++nic)
+    {
+        nic = vm->get_nic((*nic)->get_nic_id());
+        //TO-DO
+    }
 
     if (is_public_cloud) // Set ds_id to -1 and tm_mad empty(). This is used by
     {                    // by VirtualMachine::get_host_is_cloud()

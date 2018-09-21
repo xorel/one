@@ -133,7 +133,7 @@ public:
     VirtualMachineDeploy():
         RequestManagerVirtualMachine("one.vm.deploy",
                                      "Deploys a virtual machine",
-                                     "A:siibi")
+                                     "A:siibis")
     {
         auth_op = Nebula::instance().get_vm_auth_op(History::DEPLOY_ACTION);
     };
