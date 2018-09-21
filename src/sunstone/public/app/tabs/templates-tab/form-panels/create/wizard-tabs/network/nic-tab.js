@@ -152,6 +152,16 @@ define(function(require) {
     CreateUtils.setupPCIRows($(".pci-row", context));
 
     $("input.pci-type-nic", context).change();
+
+    $("input#"+this.nicTabId+"_network_mode", context).on("change", function(){
+      var network_mode_on = $(this).prop("checked");
+
+      if(network_mode_on){
+        $(".no_auto", context).hide();
+      } else {
+        $(".no_auto", context).show();
+      }
+    });
   }
 
   function _retrieve(context) {
@@ -178,6 +188,10 @@ define(function(require) {
 
     if ($("input.pci-type-nic", context).prop("checked")){
       nicJSON["NIC_PCI"] = true;
+    }
+
+    if( $("input#"+this.nicTabId+"_network_mode", context).prop("checked") ){
+      nicJSON["NETWORK_MODE"] = "auto";
     }
 
     return nicJSON;
@@ -241,6 +255,11 @@ define(function(require) {
 
     if (templateJSON["TYPE"] == "NIC"){
       $("input.pci-type-nic", context).click();
+    }
+
+    if ( templateJSON["NETWORK_MODE"] && templateJSON["NETWORK_MODE"] === "auto" ) {
+      $("input#"+this.nicTabId+"_network_mode", context).prop("checked", true);
+      $(".no_auto", context).hide();
     }
 
     WizardFields.fill(context, templateJSON);

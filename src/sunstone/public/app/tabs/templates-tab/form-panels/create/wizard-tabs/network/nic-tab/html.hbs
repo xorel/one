@@ -13,11 +13,28 @@
 {{! See the License for the specific language governing permissions and        }}
 {{! limitations under the License.                                             }}
 {{! -------------------------------------------------------------------------- }}
-
-  {{{vnetsTableSelectHTML}}}
+  {{!-- {{#isFeatureEnabled "automatic_selection_vnet"}} --}}
+  <div class="row autoContainer">
+    <div class="large-12 large-centered columns">
+      <div class="switch left">
+        <input class="switch-input" id="{{nicTabId}}_network_mode" type="checkbox">
+        <label class="switch-paddle" for="{{nicTabId}}_network_mode">
+        </label>
+      </div>
+      <label class="left">
+        &nbsp;&nbsp;
+        {{tr "Automatic selection"}}
+        {{{tip (tr "The Schedule will decide which is the bets virtual network")}}}
+      </label>
+    </div>
+  </div>
+  {{!-- {{/isFeatureEnabled}} --}}
+  <div class="no_auto">
+    {{{vnetsTableSelectHTML}}}
+  </div>
   <br>
   {{#advancedSection (tr "Advanced options") }}
-  <fieldset>
+  <fieldset class="no_auto">
     <legend>{{tr "Choose Network"}}</legend>
     <div class="row">
       <div class="medium-6 columns">
@@ -54,9 +71,9 @@
         </label>
         <input type="text" wizard_field="OPENNEBULA_MANAGED" id="OPENNEBULA_MANAGED" name="OPENNEBULA_MANAGED"/>
       </div>
-    </div> 
+    </div>
   </fieldset>
-  <fieldset>
+  <fieldset class="no_auto">
     <legend>{{tr "Override Network Values IPv4"}}</legend>
     <div class="row">
       <div class="medium-6 columns">
@@ -109,7 +126,7 @@
       </div>
     </div>
   </fieldset>
-  <fieldset>
+  <fieldset class="no_auto">
     <legend>{{tr "Override Network Values IPv6"}}</legend>
     <div class="row">
       <div class="medium-6 columns">
