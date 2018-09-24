@@ -746,9 +746,12 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
     PoolObjectAuth * auth_ds_perms;
 
     string tm_mad;
+    string error_str;
 
     bool auth = false;
     int rc;
+
+    VirtualMachinePool * vmpool = static_cast<VirtualMachinePool *>(pool);
 
     // ------------------------------------------------------------------------
     // Get request parameters and information about the target host
@@ -773,17 +776,6 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
     if ( paramList.size() > 5 )
     {
         str_tmpl = xmlrpc_c::value_string(paramList.getString(5));
-    }
-
-    // -------------------------------------------------------------------------
-    // Parse NIC template
-    // -------------------------------------------------------------------------
-    rc = tmpl.parse_str_or_xml(str_tmpl, att.resp_msg);
-
-    if ( rc != 0 )
-    {
-        failure_response(INTERNAL, att);
-        return;
     }
 
     if (get_host_information(hid,
@@ -851,15 +843,34 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
         return;
     }
 
-    VirtualMachineNics::nic_iterator nic;
-    VirtualMachineNics tnics(tmpl);
-    VirtualMachineNic * nic;
+    vm = get_vm(id, att);
 
-    for( nic = tnics.begin(); nic != tnics.end(); ++nic)
+    if (!att.is_admin())
     {
-        nic = vm->get_nic((*nic)->get_nic_id());
-        //TO-DO
+        vm->append_template(str_tmpl, true, error_str);
     }
+    else
+    {
+        vm->append_template(str_tmpl, false, error_str);
+    }
+
+    if ( vm->get_network_leases(error_str, true) != 0)
+    {
+        att.resp_msg = error_str;
+        failure_response(ACTION, att);
+        return;
+    }
+
+    if ( vm->parse_context(error_str, true) != 0 )
+    {
+        att.resp_msg = error_str;
+        failure_response(ACTION, att);
+        return;
+    }
+
+    vmpool->update(vm);
+
+    vm->unlock();
 
     if (is_public_cloud) // Set ds_id to -1 and tm_mad empty(). This is used by
     {                    // by VirtualMachine::get_host_is_cloud()

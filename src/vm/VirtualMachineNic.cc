@@ -195,7 +195,8 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
     set<int> sg_ids;
 
     vector<Attribute*>::iterator it;
-    int nic_id;
+    int nic_id, anic_id;
+    int has_nic_id;
     string net_mode = "";
     int has_net_mode;
 
@@ -205,7 +206,12 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
     for (it=nics.begin(), nic_id=0 ; it != nics.end() ; ++it, ++nic_id)
     {
         VectorAttribute * vnic  = static_cast<VectorAttribute *>(*it);
-        VirtualMachineNic * nic = new VirtualMachineNic(vnic, nic_id);
+        has_nic_id = vnic->vector_value("NIC_ID", anic_id);
+
+        if ( has_nic_id == 0 )
+        {
+            nic_id = anic_id;
+        }
 
         has_net_mode = vnic->vector_value("NETWORK_MODE", net_mode); // !0 = true
         one_util::toupper(net_mode);
@@ -213,6 +219,8 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
         if ( ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0 ) ||
             ( only_auto && ( has_net_mode == 0 && net_mode == "AUTO" ) ) )
         {
+            VirtualMachineNic * nic = new VirtualMachineNic(vnic, nic_id);
+
             if ( nic_default != 0 )
             {
                 nic->merge(nic_default, false);
@@ -227,18 +235,19 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
             nic->get_security_groups(sg_ids);
 
             add_attribute(nic, nic->get_nic_id());
+
+            /* ---------------------------------------------------------------------- */
+            /* Get the secutiry groups                                                */
+            /* ---------------------------------------------------------------------- */
+
+            sgpool->get_security_group_rules(vm_id, sg_ids, sgs);
         }
         else
         {
-            nic->replace("NIC_ID", nic_id);
-            add_attribute(nic, nic_id);
+            vnic->replace("NIC_ID", nic_id);
+            //add_attribute(nic, nic_id);
         }
     }
-
-    /* ---------------------------------------------------------------------- */
-    /* Get the secutiry groups                                                */
-    /* ---------------------------------------------------------------------- */
-    sgpool->get_security_group_rules(vm_id, sg_ids, sgs);
 
     return 0;
 }

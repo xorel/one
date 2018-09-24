@@ -1610,6 +1610,24 @@ public:
         disks.clear_cloning_image_id(image_id, source);
     }
 
+    /**
+     *  Get all network leases for this Virtual Machine
+     *  @param  only_auto boolean to get context only for vnets
+     *          with NETWORK_MODE = auto
+     *  @return 0 if success
+     */
+    int get_network_leases(string &error_str, bool only_auto);
+
+    /**
+     *  Parse the "CONTEXT" attribute of the template by substituting
+     *  $VARIABLE, $VARIABLE[ATTR] and $VARIABLE[ATTR, ATTR = VALUE]
+     *    @param error_str Returns the error reason, if any
+     *    @param  only_auto boolean to parse only the context for vnets
+     *            with NETWORK_MODE = auto
+     *    @return 0 on success
+     */
+    int parse_context(string& error_str, bool only_auto);
+
 private:
 
     // -------------------------------------------------------------------------
@@ -1972,16 +1990,6 @@ private:
     int generate_token_context(VectorAttribute * context, string& error_str);
 
     /**
-     *  Parse the "CONTEXT" attribute of the template by substituting
-     *  $VARIABLE, $VARIABLE[ATTR] and $VARIABLE[ATTR, ATTR = VALUE]
-     *    @param error_str Returns the error reason, if any
-     *    @param  only_auto boolean to parse only the context for vnets 
-     *            with NETWORK_MODE = auto
-     *    @return 0 on success
-     */
-    int parse_context(string& error_str, bool only_auto);
-
-    /**
      * Parses the current contents of the context vector attribute, without
      * adding any attributes. Substitutes $VARIABLE, $VARIABLE[ATTR] and
      * $VARIABLE[ATTR, ATTR = VALUE]
@@ -1995,13 +2003,6 @@ private:
     // -------------------------------------------------------------------------
     // Management helpers: NIC, DISK and VMGROUP
     // -------------------------------------------------------------------------
-    /**
-     *  Get all network leases for this Virtual Machine
-     *  @param  only_auto boolean to get context only for vnets
-     *          with NETWORK_MODE = auto
-     *  @return 0 if success
-     */
-    int get_network_leases(string &error_str, bool only_auto);
 
     /**
      *  Get all disk images for this Virtual Machine
