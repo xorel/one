@@ -3101,6 +3101,11 @@ int VirtualMachine::get_network_leases(string& estr, bool only_auto)
 
     VectorAttribute * nic_default = obj_template->get("NIC_DEFAULT");
 
+    if ( only_auto )
+    {
+        //TO-DO Fill with nics from obj_template
+    }
+
     if (nics.get_network_leases(oid, uid, anics, nic_default, sgs, estr, only_auto) == -1)
     {
         return -1;

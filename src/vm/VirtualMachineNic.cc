@@ -200,6 +200,8 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
     string net_mode = "";
     int has_net_mode;
 
+    VirtualMachineNic * nic;
+
     /* ---------------------------------------------------------------------- */
     /* Get the interface network information                                  */
     /* ---------------------------------------------------------------------- */
@@ -216,10 +218,18 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
         has_net_mode = vnic->vector_value("NETWORK_MODE", net_mode); // !0 = true
         one_util::toupper(net_mode);
 
+        if ( only_auto )
+        {
+            nic = get_nic(nic_id);
+        }
+        else
+        {
+            nic = new VirtualMachineNic(vnic, nic_id);
+        }
+
         if ( ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0 ) ||
             ( only_auto && ( has_net_mode == 0 && net_mode == "AUTO" ) ) )
         {
-            VirtualMachineNic * nic = new VirtualMachineNic(vnic, nic_id);
 
             if ( nic_default != 0 )
             {
@@ -245,7 +255,6 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
         else
         {
             vnic->replace("NIC_ID", nic_id);
-            //add_attribute(nic, nic_id);
         }
     }
 

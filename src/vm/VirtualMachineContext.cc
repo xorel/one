@@ -286,7 +286,7 @@ int VirtualMachine::generate_network_context(VectorAttribute* context,
     bool net_context;
     string net_mode = "";
     int has_net_mode;
-    bool all_nets_mode_auto = true;
+    bool parse_vnets = false; //All nets are auto
 
     context->vector_value("NETWORK", net_context);
 
@@ -318,13 +318,17 @@ int VirtualMachine::generate_network_context(VectorAttribute* context,
         if ( ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0) ||
             ( only_auto && ( has_net_mode == 0 && net_mode == "AUTO" ) ) )
         {
+            if ( only_auto && ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0) )
+            {
+                continue;
+            }
             parse_context_network(NETWORK_CONTEXT, &tmp_context, vatts[i]);
             parse_context_network(NETWORK6_CONTEXT, &tmp_context, vatts[i]);
-            all_nets_mode_auto = false;
+            parse_vnets = true;
         }
     }
 
-    if ( !all_nets_mode_auto )
+    if ( parse_vnets )
     {
         str = tmp_context.marshall();
 

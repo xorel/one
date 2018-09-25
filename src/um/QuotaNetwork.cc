@@ -49,7 +49,7 @@ bool QuotaNetwork::check(PoolObjectSQL::ObjectType otype, Template * tmpl,
         has_net_mode = nic[i]->vector_value("NETWORK_MODE", net_mode);
         one_util::toupper(net_mode);
 
-        if ( has_net_mode && net_mode == "AUTO")
+        if ( has_net_mode == 0 && net_mode == "AUTO")
         {
             continue;
         }
