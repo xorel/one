@@ -172,7 +172,7 @@ void ClusterRename::batch_rename(int oid)
 
 void DatastoreRename::batch_rename(int oid)
 {
-    Datastore * datastore = static_cast<DatastorePool*>(pool)->get(oid);
+    Datastore * datastore = static_cast<DatastorePool*>(pool)->get_ro(oid);
 
     if (datastore == 0)
     {
@@ -185,7 +185,7 @@ void DatastoreRename::batch_rename(int oid)
 
     string image_name = datastore->get_name();
 
-    datastore->unlock();
+    pool->delete_object(datastore);
 
     Image *     image;
     ImagePool * ipool = Nebula::instance().get_ipool();

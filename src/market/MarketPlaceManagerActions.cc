@@ -78,7 +78,7 @@ int MarketPlaceManager::import_app(
 
             image->unlock();
 
-            ds = dspool->get(ds_id);
+            ds = dspool->get_ro(ds_id);
 
 			if ( ds == 0 )
 			{
@@ -87,7 +87,7 @@ int MarketPlaceManager::import_app(
 
             ds->to_xml(ds_data);
 
-            ds->unlock();
+            dspool->delete_object(ds);
 
 			if (imagem->set_app_clone_state(app_id, origin_id, err) != 0)
 			{

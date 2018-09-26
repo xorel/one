@@ -202,12 +202,12 @@ string * VirtualMachineManager::format_message(
     ostringstream oss;
 
     string ds_tmpl = "";
-    Datastore * ds = ds_pool->get(ds_id);
+    Datastore * ds = ds_pool->get_ro(ds_id);
 
     if ( ds != 0 )
     {
         ds->to_xml(ds_tmpl);
-        ds->unlock();
+        ds_pool->delete_object(ds);
     }
 
     oss << "<VMM_DRIVER_ACTION_DATA>"

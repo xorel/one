@@ -191,7 +191,7 @@ void ImageManager::monitor_datastore(int ds_id)
         return;
     }
 
-    Datastore * ds = dspool->get(ds_id);
+    Datastore * ds = dspool->get_ro(ds_id);
 
     if ( ds == 0 )
     {
@@ -204,7 +204,7 @@ void ImageManager::monitor_datastore(int ds_id)
     ds_type    = ds->get_type();
     ds_name    = ds->get_name();
 
-    ds->unlock();
+    dspool->delete_object(ds);
 
     ds_location = "";
 

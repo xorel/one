@@ -129,7 +129,7 @@ Request::ErrorCode ImagePersistent::request_execute(
 
     image->unlock();
 
-    ds = dspool->get(ds_id);
+    ds = dspool->get_ro(ds_id);
 
     if ( ds == 0 )
     {
@@ -140,7 +140,7 @@ Request::ErrorCode ImagePersistent::request_execute(
 
     ds_persistent_only = ds->is_persistent_only();
 
-    ds->unlock();
+    dspool->delete_object(ds);
 
     image = ipool->get(id);
 
@@ -406,7 +406,7 @@ Request::ErrorCode ImageClone::request_execute(
 
     // ----------------------- Get target Datastore info -----------------------
 
-    ds = dspool->get(ds_id);
+    ds = dspool->get_ro(ds_id);
 
     if ( ds == 0 )
     {
@@ -438,11 +438,11 @@ Request::ErrorCode ImageClone::request_execute(
     ds_mad   = ds->get_ds_mad();
     tm_mad   = ds->get_tm_mad();
 
-    ds->unlock();
+    dspool->delete_object(ds);
 
     if (ds_id != ds_id_orig) //check same DS_MAD
     {
-        ds = dspool->get(ds_id_orig);
+        ds = dspool->get_ro(ds_id_orig);
 
         if (ds == 0)
         {
@@ -457,7 +457,7 @@ Request::ErrorCode ImageClone::request_execute(
         {
             att.resp_msg = "Clone only supported for IMAGE_DS Datastores";
 
-            ds->unlock();
+            dspool->delete_object(ds);
 
             delete tmpl;
             return ACTION;
@@ -467,7 +467,7 @@ Request::ErrorCode ImageClone::request_execute(
         {
             att.resp_msg = "Clone only supported to same DS_MAD Datastores";
 
-            ds->unlock();
+            dspool->delete_object(ds);
 
             delete tmpl;
             return ACTION;
@@ -475,7 +475,7 @@ Request::ErrorCode ImageClone::request_execute(
 
         ds->get_permissions(ds_perms_orig);
 
-        ds->unlock();
+        dspool->delete_object(ds);
     }
 
     // ------------- Set authorization request ---------------------------------

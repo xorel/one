@@ -471,7 +471,7 @@ int ImageManager::delete_image(int iid, string& error_str)
 
     img->unlock();
 
-    ds = dspool->get(ds_id);
+    ds = dspool->get_ro(ds_id);
 
     if ( ds == 0 )
     {
@@ -481,7 +481,7 @@ int ImageManager::delete_image(int iid, string& error_str)
 
     ds->to_xml(ds_data);
 
-    ds->unlock();
+    dspool->delete_object(ds);
 
     img = ipool->get(iid);
 
@@ -1122,7 +1122,7 @@ int ImageManager::delete_snapshot(int iid, int sid, string& error)
 
     string ds_data;
 
-    Datastore * ds = dspool->get(ds_id);
+    Datastore * ds = dspool->get_ro(ds_id);
 
     if ( ds == 0 )
     {
@@ -1132,7 +1132,7 @@ int ImageManager::delete_snapshot(int iid, int sid, string& error)
 
     ds->to_xml(ds_data);
 
-    ds->unlock();
+    dspool->delete_object(ds);
 
     /* ---------------------------------------------------------------------- */
     /*  Check action consistency:                                             */
@@ -1215,7 +1215,7 @@ int ImageManager::revert_snapshot(int iid, int sid, string& error)
 
     string ds_data;
 
-    Datastore * ds = dspool->get(ds_id);
+    Datastore * ds = dspool->get_ro(ds_id);
 
     if ( ds == 0 )
     {
@@ -1225,7 +1225,7 @@ int ImageManager::revert_snapshot(int iid, int sid, string& error)
 
     ds->to_xml(ds_data);
 
-    ds->unlock();
+    dspool->delete_object(ds);
 
     /* ---------------------------------------------------------------------- */
     /*  Check action consistency:                                             */
@@ -1319,7 +1319,7 @@ int ImageManager::flatten_snapshot(int iid, int sid, string& error)
 
     string ds_data;
 
-    Datastore * ds = dspool->get(ds_id);
+    Datastore * ds = dspool->get_ro(ds_id);
 
     if ( ds == 0 )
     {
@@ -1329,7 +1329,7 @@ int ImageManager::flatten_snapshot(int iid, int sid, string& error)
 
     ds->to_xml(ds_data);
 
-    ds->unlock();
+    dspool->delete_object(ds);
 
     /* ---------------------------------------------------------------------- */
     /*  Check action consistency:                                             */

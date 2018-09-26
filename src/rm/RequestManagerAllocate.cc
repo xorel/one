@@ -422,7 +422,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
 
     // ------------------------- Check Datastore exists ------------------------
 
-    if ((ds = dspool->get(ds_id)) == 0 )
+    if ((ds = dspool->get_ro(ds_id)) == 0 )
     {
         att.resp_id  = ds_id;
         att.resp_obj = PoolObjectSQL::DATASTORE;
@@ -436,7 +436,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
 
     if ( ds_type == Datastore::SYSTEM_DS )
     {
-        ds->unlock();
+        dspool->delete_object(ds);
 
         att.resp_msg = "New images cannot be allocated in a system datastore.";
         failure_response(ALLOCATE, att);
@@ -458,7 +458,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
 
     ds->to_xml(ds_data);
 
-    ds->unlock();
+    dspool->delete_object(ds);
 
     // --------------- Get the SIZE for the Image, (DS driver) -----------------
 

@@ -269,7 +269,7 @@ int RequestManagerVirtualMachine::get_ds_information(int ds_id,
 {
     Nebula& nd = Nebula::instance();
 
-    Datastore * ds = nd.get_dspool()->get(ds_id);
+    Datastore * ds = nd.get_dspool()->get_ro(ds_id);
 
     ds_cluster_ids.clear();
 
@@ -293,7 +293,7 @@ int RequestManagerVirtualMachine::get_ds_information(int ds_id,
 
         failure_response(INTERNAL, att);
 
-        ds->unlock();
+        nd.get_dspool()->delete_object(ds);
 
         return -1;
     }
@@ -304,7 +304,7 @@ int RequestManagerVirtualMachine::get_ds_information(int ds_id,
 
     ds->get_template_attribute("DS_MIGRATE", ds_migr);
 
-    ds->unlock();
+    nd.get_dspool()->delete_object(ds);
 
     return 0;
 }
@@ -846,7 +846,7 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
     }
     else
     {
-        Datastore * ds = dspool->get(ds_id);
+        Datastore * ds = dspool->get_ro(ds_id);
 
         if (ds == 0 )
         {
@@ -859,7 +859,7 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
 
         ds->get_permissions(ds_perms);
 
-        ds->unlock();
+        dspool->delete_object(ds);
 
         auth_ds_perms = &ds_perms;
     }
@@ -1026,7 +1026,7 @@ void VirtualMachineMigrate::request_execute(xmlrpc_c::paramList const& paramList
     }
     else
     {
-        Datastore * ds = dspool->get(ds_id);
+        Datastore * ds = dspool->get_ro(ds_id);
 
         if (ds == 0 )
         {
@@ -1039,7 +1039,7 @@ void VirtualMachineMigrate::request_execute(xmlrpc_c::paramList const& paramList
 
         ds->get_permissions(ds_perms);
 
-        ds->unlock();
+        dspool->delete_object(ds);
 
         auth_ds_perms = &ds_perms;
     }
@@ -1396,7 +1396,7 @@ void VirtualMachineDiskSaveas::request_execute(
     // -------------------------------------------------------------------------
     // Get the data of the DataStore for the new image & size
     // -------------------------------------------------------------------------
-    if ((ds = dspool->get(ds_id)) == 0 )
+    if ((ds = dspool->get_ro(ds_id)) == 0 )
     {
         goto error_ds;
     }
@@ -1409,7 +1409,7 @@ void VirtualMachineDiskSaveas::request_execute(
     ds_mad       = ds->get_ds_mad();
     ds_mad       = ds->get_tm_mad();
 
-    ds->unlock();
+    dspool->delete_object(ds);
 
     if (ds_check && (size > avail))
     {

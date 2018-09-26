@@ -158,7 +158,7 @@ void MonitorThread::do_message()
 
     for (itm = datastores.begin(); itm != datastores.end(); itm++)
     {
-        ds = dspool->get(itm->first);
+        ds = dspool->get_ro(itm->first);
 
         if (ds == 0)
         {
@@ -170,7 +170,7 @@ void MonitorThread::do_message()
             non_shared_ds.insert(itm->first);
         }
 
-        ds->unlock();
+        dspool->delete_object(ds);
     }
 
     // -------------------------------------------------------------------------

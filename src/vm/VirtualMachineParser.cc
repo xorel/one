@@ -157,7 +157,7 @@ int VirtualMachine::set_os_file(VectorAttribute* os, const string& base_name,
         return -1;
     }
 
-    ds = ds_pool->get(ds_id);
+    ds = ds_pool->get_ro(ds_id);
 
     if ( ds == 0 )
     {
@@ -174,7 +174,7 @@ int VirtualMachine::set_os_file(VectorAttribute* os, const string& base_name,
         os->replace(base_name_cluster, one_util::join(cluster_ids, ','));
     }
 
-    ds->unlock();
+    ds_pool->delete_object(ds);
 
     return 0;
 }
