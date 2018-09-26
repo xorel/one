@@ -134,7 +134,7 @@ void RequestManagerRename::request_execute(xmlrpc_c::paramList const& paramList,
 
 void ClusterRename::batch_rename(int oid)
 {
-    Cluster * cluster = static_cast<ClusterPool *>(pool)->get(oid);
+    Cluster * cluster = static_cast<ClusterPool *>(pool)->get_ro(oid);
 
     if (cluster == 0)
     {
@@ -145,7 +145,7 @@ void ClusterRename::batch_rename(int oid)
 
     string cluster_name    = cluster->get_name();
 
-    cluster->unlock();
+    pool->delete_object(cluster);
 
     Host *              host;
     HostPool*           hpool = Nebula::instance().get_hpool();

@@ -220,7 +220,7 @@ int RequestManagerVirtualMachine::get_default_ds_information(
 
     ds_id = -1;
 
-    cluster = clpool->get(cluster_id);
+    cluster = clpool->get_ro(cluster_id);
 
     if (cluster == 0)
     {
@@ -233,7 +233,7 @@ int RequestManagerVirtualMachine::get_default_ds_information(
 
     set<int> ds_ids = cluster->get_datastores();
 
-    cluster->unlock();
+    clpool->delete_object(cluster);
 
     ds_id = Cluster::get_default_system_ds(ds_ids);
 

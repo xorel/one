@@ -146,13 +146,13 @@ void MonitorThread::do_message()
 
     if (cid != -1)
     {
-        Cluster *cluster = cpool->get(cid);
+        Cluster * cluster = cpool->get_ro(cid);
 
         if (cluster != 0)
         {
             cluster->get_reserved_capacity(reserved_cpu, reserved_mem);
 
-            cluster->unlock();
+            cpool->delete_object(cluster);
         }
     }
 
