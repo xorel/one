@@ -77,6 +77,19 @@ public:
     };
 
     /**
+     *  Gets a read only object from the pool (if needed the object is loaded from the
+     *  database).
+     *   @param oid the object unique identifier
+     *   @param lock locks the object if true
+     *
+     *   @return a pointer to the object, 0 in case of failure
+     */
+    Document * get_ro(int oid)
+    {
+        return static_cast<Document *>(PoolSQL::get_ro(oid));
+    };
+
+    /**
      *  Dumps the pool in XML format. A filter can be also added to the
      *  query
      *  @param oss the output stream to dump the pool contents

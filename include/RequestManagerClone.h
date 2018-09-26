@@ -153,7 +153,7 @@ protected:
     int pool_allocate(int sid, Template * tmpl, int& id, RequestAttributes& att)
     {
         DocumentPool * docpool = static_cast<DocumentPool *>(pool);
-        Document * doc         = docpool->get(sid);
+        Document * doc         = docpool->get_ro(sid);
 
         if ( doc == 0 )
         {
@@ -162,7 +162,7 @@ protected:
 
         int dtype = doc->get_document_type();
 
-        doc->unlock();
+        docpool->delete_object(doc);
 
         return docpool->allocate(att.uid, att.gid, att.uname, att.gname,
             att.umask, dtype, tmpl, &id, att.resp_msg);
