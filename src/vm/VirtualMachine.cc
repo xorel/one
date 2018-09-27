@@ -3063,7 +3063,7 @@ int VirtualMachine::get_network_leases(string& estr, bool only_auto)
     /*   * NIC                                                                */
     /*   * PCI + TYPE = NIC                                                   */
     /* ---------------------------------------------------------------------- */
-    vector<Attribute  * > anics;
+    vector<Attribute *> anics;
 
     user_obj_template->remove("NIC", anics);
 
@@ -3103,7 +3103,11 @@ int VirtualMachine::get_network_leases(string& estr, bool only_auto)
 
     if ( only_auto )
     {
-        //TO-DO Fill with nics from obj_template
+        vector<VectorAttribute *> anics_obj;
+        get_template_attribute("NIC", anics_obj);
+
+        vector<Attribute*> anics_auto_obj(begin(anics_obj), end(anics_obj));
+        anics = anics_auto_obj;
     }
 
     if (nics.get_network_leases(oid, uid, anics, nic_default, sgs, estr, only_auto) == -1)

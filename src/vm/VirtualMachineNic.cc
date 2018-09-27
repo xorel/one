@@ -227,7 +227,7 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
             nic = new VirtualMachineNic(vnic, nic_id);
         }
 
-        if ( ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0 ) ||
+        if ( ( ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0) && !only_auto ) ||
             ( only_auto && ( has_net_mode == 0 && net_mode == "AUTO" ) ) )
         {
 
