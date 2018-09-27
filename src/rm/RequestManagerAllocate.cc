@@ -484,7 +484,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
 
         apppool->delete_object(app);
 
-        market = marketpool->get(market_id);
+        market = marketpool->get_ro(market_id);
 
         if ( market == 0 )
         {
@@ -497,7 +497,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
 
         market->to_xml(extra_data);
 
-        market->unlock();
+        marketpool->delete_object(market);
 
         oss << size_mb;
         size_str = oss.str();
@@ -1167,7 +1167,7 @@ Request::ErrorCode MarketPlaceAppAllocate::pool_allocate(
     // ---------------------------------------------------------------------- //
     // Get Marketplace information for this app                               //
     // ---------------------------------------------------------------------- //
-    MarketPlace * mp = mppool->get(mp_id);
+    MarketPlace * mp = mppool->get_ro(mp_id);
 
     if ( mp == 0 )
     {
@@ -1180,7 +1180,7 @@ Request::ErrorCode MarketPlaceAppAllocate::pool_allocate(
     if ( !mp->is_action_supported(MarketPlaceApp::CREATE) )
     {
         att.resp_msg = "Create disabled for market: " + mp_name;
-        mp->unlock();
+        mppool->delete_object(mp);
 
         return Request::ACTION;
     }
@@ -1188,14 +1188,14 @@ Request::ErrorCode MarketPlaceAppAllocate::pool_allocate(
     if ( mp->get_zone_id() != Nebula::instance().get_zone_id() )
     {
         att.resp_msg = "Marketplace is not in this OpenNebula zone";
-        mp->unlock();
+        mppool->delete_object(mp);
 
         return Request::ACTION;
     }
 
     mp->to_xml(mp_data);
 
-    mp->unlock();
+    mppool->delete_object(mp);
 
     // ---------------------------------------------------------------------- //
     // Allocate MarketPlaceApp request is forwarded to master for slaves      //

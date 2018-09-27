@@ -252,7 +252,7 @@ void HostRename::batch_rename(int oid)
 
 void MarketPlaceRename::batch_rename(int oid)
 {
-    MarketPlace * market = static_cast<MarketPlacePool*>(pool)->get(oid);
+    MarketPlace * market = static_cast<MarketPlacePool*>(pool)->get_ro(oid);
 
     if (market == 0)
     {
@@ -265,7 +265,7 @@ void MarketPlaceRename::batch_rename(int oid)
 
     std::string market_name = market->get_name();
 
-    market->unlock();
+    static_cast<MarketPlacePool*>(pool)->delete_object(market);
 
     MarketPlaceApp *     app;
     MarketPlaceAppPool * apppool = Nebula::instance().get_apppool();
