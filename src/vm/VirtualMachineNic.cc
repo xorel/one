@@ -136,7 +136,7 @@ void VirtualMachineNic::authorize(PoolObjectSQL::ObjectType ot, int uid,
 
     for(set<int>::iterator it = sgroups.begin(); it != sgroups.end(); it++)
     {
-        SecurityGroup * sgroup = sgpool->get(*it);
+        SecurityGroup * sgroup = sgpool->get_ro(*it);
 
         if(sgroup != 0)
         {
@@ -144,7 +144,7 @@ void VirtualMachineNic::authorize(PoolObjectSQL::ObjectType ot, int uid,
 
             sgroup->get_permissions(perm);
 
-            sgroup->unlock();
+            sgpool->delete_object(sgroup);
 
             if ( check_lock )
             {
