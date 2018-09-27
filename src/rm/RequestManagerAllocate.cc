@@ -755,7 +755,7 @@ bool UserAllocate::allocate_authorization(
     {
         int tmp_gid = xmlrpc_c::value_int(*it);
 
-        Group* group = gpool->get(tmp_gid);
+        Group* group = gpool->get_ro(tmp_gid);
 
         if (group == 0)
         {
@@ -777,7 +777,7 @@ bool UserAllocate::allocate_authorization(
             ar.add_auth(AuthRequest::MANAGE, perms); // MANAGE GROUP
         }
 
-        group->unlock();
+        gpool->delete_object(group);
     }
 
     if (UserPool::authorize(ar) == -1)
