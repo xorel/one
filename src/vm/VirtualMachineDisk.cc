@@ -122,13 +122,13 @@ int VirtualMachineDisk::get_image_id(int &id, int uid)
             return -1;
         }
 
-        Image * image = ipool->get(iname, uiid);
+        Image * image = ipool->get_ro(iname, uiid);
 
         if ( image != 0 )
         {
             id = image->get_oid();
 
-            image->unlock();
+            ipool->delete_object(image);
         }
 
         return 0;
@@ -185,7 +185,7 @@ void VirtualMachineDisk::authorize(int uid, AuthRequest* ar, bool check_lock)
             return;
         }
 
-        img = ipool->get(source , uiid);
+        img = ipool->get_ro(source , uiid);
 
         if ( img != 0 )
         {
@@ -194,7 +194,7 @@ void VirtualMachineDisk::authorize(int uid, AuthRequest* ar, bool check_lock)
     }
     else if ( vector_value("IMAGE_ID", iid) == 0 )
     {
-        img = ipool->get(iid);
+        img = ipool->get_ro(iid);
     }
 
     if (img == 0)
@@ -204,7 +204,7 @@ void VirtualMachineDisk::authorize(int uid, AuthRequest* ar, bool check_lock)
 
     img->get_permissions(perm);
 
-    img->unlock();
+    ipool->delete_object(img);
 
     //cloning disks can be used with lock, lcm will track image state updates.
     if (is_cloning() || !check_lock)

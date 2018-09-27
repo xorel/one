@@ -113,7 +113,7 @@ int get_image_path(VirtualMachine * vm,
             delete vfile;
         }
 
-        img = ipool->get(val1, uid);
+        img = ipool->get_ro(val1, uid);
 
         if ( img == 0 )
         {
@@ -134,7 +134,7 @@ int get_image_path(VirtualMachine * vm,
 
         if ( !is.fail() )
         {
-            img = ipool->get(iid);
+            img = ipool->get_ro(iid);
         }
 
         if ( img == 0 )
@@ -157,7 +157,7 @@ int get_image_path(VirtualMachine * vm,
 
     img->get_permissions(perm);
 
-    img->unlock();
+    ipool->delete_object(img);
 
     set<int> gids;
 

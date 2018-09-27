@@ -122,7 +122,7 @@ void get_image_attribute(VirtualMachine * vm,
     // ----------------------------------------------
     // Get the attribute template from the image
     // ----------------------------------------------
-    img = ipool->get(iid);
+    img = ipool->get_ro(iid);
 
     if ( img == 0 )
     {
@@ -138,7 +138,7 @@ void get_image_attribute(VirtualMachine * vm,
         img->get_template_attribute(attr_name.c_str(), attr_value);
     }
 
-    img->unlock();
+    ipool->delete_object(img);
 }
 
 /* -------------------------------------------------------------------------- */

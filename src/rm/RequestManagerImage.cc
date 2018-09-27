@@ -107,7 +107,7 @@ Request::ErrorCode ImagePersistent::request_execute(
         return ec;
     }
 
-    image = ipool->get(id);
+    image = ipool->get_ro(id);
 
     if ( image == 0 )
     {
@@ -122,12 +122,12 @@ Request::ErrorCode ImagePersistent::request_execute(
     {
         att.resp_msg = "Cannot change persistent state for non-managed images";
 
-        image->unlock();
+        ipool->delete_object(image);
 
         return ACTION;
     }
 
-    image->unlock();
+    ipool->delete_object(image);
 
     ds = dspool->get_ro(ds_id);
 
@@ -345,7 +345,7 @@ Request::ErrorCode ImageClone::request_execute(
 
     // ------------------------- Get source Image info -------------------------
 
-    img = ipool->get(clone_id);
+    img = ipool->get_ro(clone_id);
 
     if ( img == 0 )
     {
@@ -390,7 +390,7 @@ Request::ErrorCode ImageClone::request_execute(
 
     size = img->get_size();
 
-    img->unlock();
+    ipool->delete_object(img);
 
     //--------------------------------------------------------------------------
     // Set image persistent attribute

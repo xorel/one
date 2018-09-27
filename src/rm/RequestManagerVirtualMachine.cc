@@ -1359,7 +1359,7 @@ void VirtualMachineDiskSaveas::request_execute(
     // -------------------------------------------------------------------------
     // Get the data of the Image to be saved
     // -------------------------------------------------------------------------
-    img = ipool->get(iid_orig);
+    img = ipool->get_ro(iid_orig);
 
     if ( img == 0 )
     {
@@ -1378,7 +1378,7 @@ void VirtualMachineDiskSaveas::request_execute(
     img->get_template_attribute("TARGET", target);
     img->get_template_attribute("DEV_PREFIX", dev_prefix);
 
-    img->unlock();
+    ipool->delete_object(img);
 
     switch (type)
     {
@@ -2676,7 +2676,7 @@ void VirtualMachineDiskSnapshotCreate::request_execute(
     {
         PoolObjectAuth img_perms;
 
-        Image* img = ipool->get(img_id);
+        Image* img = ipool->get_ro(img_id);
 
         if (img == 0)
         {
@@ -2689,7 +2689,7 @@ void VirtualMachineDiskSnapshotCreate::request_execute(
 
         img->get_permissions(img_perms);
 
-        img->unlock();
+        ipool->delete_object(img);
 
         if (vm_authorization(id, 0, 0, att, 0, 0, &img_perms, auth_op) == false)
         {
@@ -2857,7 +2857,7 @@ void VirtualMachineDiskSnapshotDelete::request_execute(
     {
         PoolObjectAuth img_perms;
 
-        Image* img = ipool->get(img_id);
+        Image* img = ipool->get_ro(img_id);
 
         if (img == 0)
         {
@@ -2870,7 +2870,7 @@ void VirtualMachineDiskSnapshotDelete::request_execute(
 
         img->get_permissions(img_perms);
 
-        img->unlock();
+        ipool->delete_object(img);
 
         if (vm_authorization(id, 0, 0, att, 0, 0, &img_perms, auth_op) == false)
         {
@@ -3103,7 +3103,7 @@ void VirtualMachineDiskResize::request_execute(
 
         if ( img_id != -1 )
         {
-            Image* img = ipool->get(img_id);
+            Image* img = ipool->get_ro(img_id);
 
             if (img == 0)
             {
@@ -3116,7 +3116,7 @@ void VirtualMachineDiskResize::request_execute(
 
             img->get_permissions(img_perms);
 
-            img->unlock();
+            ipool->delete_object(img);
         }
 
         if (vm_authorization(id, 0, 0, att, 0, 0, &img_perms, auth_op) == false)

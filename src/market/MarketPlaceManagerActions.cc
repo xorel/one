@@ -65,7 +65,7 @@ int MarketPlaceManager::import_app(
     switch (type)
     {
         case MarketPlaceApp::IMAGE:
-            image = ipool->get(origin_id);
+            image = ipool->get_ro(origin_id);
 
 			if ( image == 0 )
 			{
@@ -76,7 +76,7 @@ int MarketPlaceManager::import_app(
 
             ds_id = image->get_ds_id();
 
-            image->unlock();
+            ipool->delete_object(image);
 
             ds = dspool->get_ro(ds_id);
 

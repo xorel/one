@@ -357,14 +357,14 @@ void Quotas::ds_del_recreate(int uid, int gid, vector<Template *>& ds_quotas)
 
         if ( img_owner )
         {
-            Image* img = ipool->get(image_id);
+            Image* img = ipool->get_ro(image_id);
 
             if(img != 0)
             {
                 int img_uid = img->get_uid();
                 int img_gid = img->get_gid();
 
-                img->unlock();
+                ipool->delete_object(img);
 
                 quota_del(DATASTORE, img_uid, img_gid, tmpl);
             }

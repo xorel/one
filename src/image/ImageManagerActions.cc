@@ -459,7 +459,7 @@ int ImageManager::delete_image(int iid, string& error_str)
 
     ostringstream oss;
 
-    img = ipool->get(iid);
+    img = ipool->get_ro(iid);
 
     if ( img == 0 )
     {
@@ -469,7 +469,7 @@ int ImageManager::delete_image(int iid, string& error_str)
 
     ds_id = img->get_ds_id();
 
-    img->unlock();
+    ipool->delete_object(img);
 
     ds = dspool->get_ro(ds_id);
 
@@ -646,7 +646,7 @@ int ImageManager::can_clone_image(int cloning_id, ostringstream&  oss_error)
 {
     Image *       img;
 
-    img = ipool->get(cloning_id);
+    img = ipool->get_ro(cloning_id);
 
     if (img == 0)
     {
@@ -656,7 +656,7 @@ int ImageManager::can_clone_image(int cloning_id, ostringstream&  oss_error)
 
     Image::ImageState state = img->get_state();
 
-    img->unlock();
+    ipool->delete_object(img);
 
     switch(state)
     {
@@ -770,7 +770,7 @@ int ImageManager::clone_image(int   new_id,
         return -1;
     }
 
-    img = ipool->get(new_id);
+    img = ipool->get_ro(new_id);
 
     if (img == 0)
     {
@@ -789,7 +789,7 @@ int ImageManager::clone_image(int   new_id,
 
     NebulaLog::log("ImM", Log::INFO, oss);
 
-    img->unlock();
+    ipool->delete_object(img);
 
     delete drv_msg;
 
@@ -1105,7 +1105,7 @@ int ImageManager::delete_snapshot(int iid, int sid, string& error)
         return -1;
     }
 
-    Image * img = ipool->get(iid);
+    Image * img = ipool->get_ro(iid);
 
     if ( img == 0 )
     {
@@ -1118,7 +1118,7 @@ int ImageManager::delete_snapshot(int iid, int sid, string& error)
     /* ---------------------------------------------------------------------- */
     int ds_id = img->get_ds_id();
 
-    img->unlock();
+    ipool->delete_object(img);
 
     string ds_data;
 
@@ -1198,7 +1198,7 @@ int ImageManager::revert_snapshot(int iid, int sid, string& error)
         return -1;
     }
 
-    Image * img = ipool->get(iid);
+    Image * img = ipool->get_ro(iid);
 
     if ( img == 0 )
     {
@@ -1211,7 +1211,7 @@ int ImageManager::revert_snapshot(int iid, int sid, string& error)
     /* ---------------------------------------------------------------------- */
     int ds_id = img->get_ds_id();
 
-    img->unlock();
+    ipool->delete_object(img);
 
     string ds_data;
 
@@ -1302,7 +1302,7 @@ int ImageManager::flatten_snapshot(int iid, int sid, string& error)
         return -1;
     }
 
-    Image * img = ipool->get(iid);
+    Image * img = ipool->get_ro(iid);
 
     if ( img == 0 )
     {
@@ -1315,7 +1315,7 @@ int ImageManager::flatten_snapshot(int iid, int sid, string& error)
     /* ---------------------------------------------------------------------- */
     int ds_id = img->get_ds_id();
 
-    img->unlock();
+    ipool->delete_object(img);
 
     string ds_data;
 

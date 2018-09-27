@@ -1951,14 +1951,14 @@ void LifeCycleManager::disk_snapshot_success(int vid)
     {
         if ( img_owner )
         {
-            Image* img = ipool->get(img_id);
+            Image* img = ipool->get_ro(img_id);
 
             if(img != 0)
             {
                 int img_uid = img->get_uid();
                 int img_gid = img->get_gid();
 
-                img->unlock();
+                ipool->delete_object(img);
 
                 Quotas::ds_del(img_uid, img_gid, ds_quotas);
             }
@@ -2095,14 +2095,14 @@ void LifeCycleManager::disk_snapshot_failure(int vid)
     {
         if ( img_owner )
         {
-            Image* img = ipool->get(img_id);
+            Image* img = ipool->get_ro(img_id);
 
             if(img != 0)
             {
                 int img_uid = img->get_uid();
                 int img_gid = img->get_gid();
 
-                img->unlock();
+                ipool->delete_object(img);
 
                 Quotas::ds_del(img_uid, img_gid, ds_quotas);
             }
@@ -2182,7 +2182,7 @@ void LifeCycleManager::disk_lock_success(int vid)
 
     for (set<int>::iterator id = ids.begin(); id != ids.end(); id++)
     {
-        image = ipool->get(*id);
+        image = ipool->get_ro(*id);
 
         if (image != 0)
         {
@@ -2207,7 +2207,7 @@ void LifeCycleManager::disk_lock_success(int vid)
                     break;
             }
 
-            image->unlock();
+            ipool->delete_object(image);
         }
     }
 
@@ -2402,14 +2402,14 @@ void LifeCycleManager::disk_resize_failure(int vid)
     // Restore quotas
     if ( img_quota && img_id != -1 )
     {
-        Image* img = ipool->get(img_id);
+        Image* img = ipool->get_ro(img_id);
 
         if(img != 0)
         {
             int img_uid = img->get_uid();
             int img_gid = img->get_gid();
 
-            img->unlock();
+            ipool->delete_object(img);
 
             Quotas::ds_del(img_uid, img_gid, &ds_deltas);
         }

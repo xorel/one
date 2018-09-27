@@ -492,7 +492,7 @@ int VirtualMachine::parse_context(string& error_str)
 
             for ( it=img_ids.begin() ; it < img_ids.end(); it++ )
             {
-                img = ipool->get(*it);
+                img = ipool->get_ro(*it);
 
                 if ( img != 0 )
                 {
@@ -502,7 +502,7 @@ int VirtualMachine::parse_context(string& error_str)
                     type  = img->get_type();
                     state = img->get_state();
 
-                    img->unlock();
+                    ipool->delete_object(img);
 
                     if (type != Image::CONTEXT)
                     {

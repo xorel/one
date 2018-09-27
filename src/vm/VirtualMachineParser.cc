@@ -112,7 +112,7 @@ int VirtualMachine::set_os_file(VectorAttribute* os, const string& base_name,
 
     img_id = img_ids.back();
 
-    img = ipool->get(img_id);
+    img = ipool->get_ro(img_id);
 
     if ( img == 0 )
     {
@@ -131,7 +131,7 @@ int VirtualMachine::set_os_file(VectorAttribute* os, const string& base_name,
     os->replace(base_name_source, img->get_source());
     os->replace(base_name_ds_id,  img->get_ds_id());
 
-    img->unlock();
+    ipool->delete_object(img);
 
     type_str = Image::type_to_str(type);
 
