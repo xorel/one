@@ -97,7 +97,7 @@ int VirtualMachineNic::get_uid(int _uid, string& error)
     else if ( !(uname = vector_value("NETWORK_UNAME")).empty() )
     {
         UserPool * upool = Nebula::instance().get_upool();
-        User * user      = upool->get(uname);
+        User * user      = upool->get_ro(uname);
 
         if ( user == 0 )
         {
@@ -107,7 +107,7 @@ int VirtualMachineNic::get_uid(int _uid, string& error)
 
         uid = user->get_oid();
 
-        user->unlock();
+        upool->delete_object(user);
     }
     else
     {

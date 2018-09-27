@@ -458,7 +458,7 @@ public:
     {
         if ( uid != -1 )
         {
-            User * user = upool->get(uid);
+            User * user = upool->get_ro(uid);
 
             if ( user == 0 )
             {
@@ -473,12 +473,12 @@ public:
             {
                 if ( uconf->vector_value(name, value) == 0 )
                 {
-                    user->unlock();
+                    upool->delete_object(user);
                     return 0;
                 }
             }
 
-            user->unlock();
+            upool->delete_object(user);
         }
 
         Group * group = gpool->get_ro(gid);

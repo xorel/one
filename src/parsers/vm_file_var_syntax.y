@@ -161,12 +161,12 @@ int get_image_path(VirtualMachine * vm,
 
     set<int> gids;
 
-    user = upool->get(vm->get_uid());
+    user = upool->get_ro(vm->get_uid());
 
     if (user != 0)
     {
         gids = user->get_groups();
-        user->unlock();
+        upool->delete_object(user);
     }
     else
     {

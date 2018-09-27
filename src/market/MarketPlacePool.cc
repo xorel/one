@@ -41,7 +41,7 @@ MarketPlacePool::MarketPlacePool(SqlDB * db, bool is_federation_slave)
 
         Nebula& nd         = Nebula::instance();
         UserPool * upool   = nd.get_upool();
-        User *    oneadmin = upool->get(0);
+        User *    oneadmin = upool->get_ro(0);
 
         string error;
 
@@ -58,7 +58,7 @@ MarketPlacePool::MarketPlacePool(SqlDB * db, bool is_federation_slave)
                 oneadmin->get_umask(),
                 default_tmpl);
 
-        oneadmin->unlock();
+        upool->delete_object(oneadmin);
 
         marketplace->set_permissions(1,1,1, 1,0,0, 1,0,0, error);
 

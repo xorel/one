@@ -232,7 +232,7 @@ void get_user_attribute(VirtualMachine * vm,
 
     attr_value.clear();
 
-    user = upool->get(vm->get_uid());
+    user = upool->get_ro(vm->get_uid());
 
     if ( user == 0 )
     {
@@ -248,7 +248,7 @@ void get_user_attribute(VirtualMachine * vm,
         user->get_template_attribute(attr_name.c_str(),attr_value);
     }
 
-    user->unlock();
+    upool->delete_object(user);
 }
 
 /* -------------------------------------------------------------------------- */

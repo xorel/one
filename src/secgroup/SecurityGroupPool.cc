@@ -38,7 +38,7 @@ SecurityGroupPool::SecurityGroupPool(SqlDB * db):PoolSQL(db,SecurityGroup::table
 
         Nebula& nd         = Nebula::instance();
         UserPool * upool   = nd.get_upool();
-        User *    oneadmin = upool->get(0);
+        User *    oneadmin = upool->get_ro(0);
 
         string error;
 
@@ -55,7 +55,7 @@ SecurityGroupPool::SecurityGroupPool(SqlDB * db):PoolSQL(db,SecurityGroup::table
                 oneadmin->get_umask(),
                 default_tmpl);
 
-        oneadmin->unlock();
+        upool->delete_object(oneadmin);
 
         secgroup->set_permissions(1,1,1,1,0,0,1,0,0,error);
 

@@ -81,7 +81,7 @@ int VirtualMachineDisk::get_uid(int _uid)
         Nebula&    nd    = Nebula::instance();
         UserPool * upool = nd.get_upool();
 
-        user = upool->get(uname);
+        user = upool->get_ro(uname);
 
         if ( user == 0 )
         {
@@ -90,7 +90,7 @@ int VirtualMachineDisk::get_uid(int _uid)
 
         uid = user->get_oid();
 
-        user->unlock();
+        upool->delete_object(user);
     }
     else
     {

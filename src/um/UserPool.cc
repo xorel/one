@@ -76,7 +76,7 @@ UserPool::UserPool(SqlDB * db,
 
     _session_expiration_time = __session_expiration_time;
 
-    User * oneadmin_user = get(0);
+    User * oneadmin_user = get_ro(0);
 
     //Slaves do not need to init the pool, just the oneadmin username
     if (is_federation_slave)
@@ -87,7 +87,7 @@ UserPool::UserPool(SqlDB * db,
         }
 
         oneadmin_name = oneadmin_user->get_name();
-        oneadmin_user->unlock();
+        delete_object(oneadmin_user);
 
         return;
     }
@@ -95,7 +95,7 @@ UserPool::UserPool(SqlDB * db,
     if (oneadmin_user != 0)
     {
         oneadmin_name = oneadmin_user->get_name();
-        oneadmin_user->unlock();
+        delete_object(oneadmin_user);
 
         register_hooks(hook_mads, remotes_location);
 
@@ -941,7 +941,7 @@ bool UserPool::authenticate_server(User *        user,
         goto wrong_server_token;
     }
 
-    user = get(target_username);
+    user = get_ro(target_username);
 
     if ( user == 0 )
     {
@@ -962,7 +962,7 @@ bool UserPool::authenticate_server(User *        user,
 
     umask  = user->get_umask();
 
-    user->unlock();
+    delete_object(user);
 
     if (result)
     {
@@ -988,12 +988,12 @@ bool UserPool::authenticate_server(User *        user,
         goto auth_failure_driver;
     }
 
-    user = get(user_id);
+    user = get_ro(user_id);
 
     if (user != 0)
     {
         user->session->set(second_token, _session_expiration_time);
-        user->unlock();
+        delete_object(user);
     }
 
     return true;
@@ -1328,19 +1328,19 @@ int UserPool::dump(ostringstream& oss, const string& where, const string& limit,
 string UserPool::get_token_password(int oid, int bck_oid){
 
     string token_password = "";
-    User * user = get(oid);
+    User * user = get_ro(oid);
 
     if (user != 0)
     {
         user->get_template_attribute("TOKEN_PASSWORD", token_password);
-        user->unlock();
+        delete_object(user);
     }
     else{
-        user = get(bck_oid);
+        user = get_ro(bck_oid);
         if (user != 0)
         {
             user->get_template_attribute("TOKEN_PASSWORD", token_password);
-            user->unlock();
+            delete_object(user);
         }
     }
     return token_password;
