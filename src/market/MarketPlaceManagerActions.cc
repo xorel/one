@@ -45,7 +45,7 @@ int MarketPlaceManager::import_app(
 
     const MarketPlaceManagerDriver* mpmd;
 
-    MarketPlaceApp * app = apppool->get(appid);
+    MarketPlaceApp * app = apppool->get_ro(appid);
 
     if ( app == 0 )
     {
@@ -60,7 +60,7 @@ int MarketPlaceManager::import_app(
 	int app_id    = app->get_oid();
     int origin_id = app->get_origin_id();
 
-    app->unlock();
+    apppool->delete_object(app);
 
     switch (type)
     {
@@ -158,7 +158,7 @@ error_common:
 
 void MarketPlaceManager::release_app_resources(int appid)
 {
-    MarketPlaceApp * app = apppool->get(appid);
+    MarketPlaceApp * app = apppool->get_ro(appid);
 
     if (app == 0)
     {
@@ -169,7 +169,7 @@ void MarketPlaceManager::release_app_resources(int appid)
 
     int iid = app->get_origin_id();
 
-    app->unlock();
+    apppool->delete_object(app);
 
     switch (type)
     {
@@ -204,7 +204,7 @@ int MarketPlaceManager::delete_app(int appid, const std::string& market_data,
         return -1;
     }
 
-    app = apppool->get(appid);
+    app = apppool->get_ro(appid);
 
     if (app == 0)
     {
@@ -219,7 +219,7 @@ int MarketPlaceManager::delete_app(int appid, const std::string& market_data,
 
     int market_id = app->get_market_id();
 
-    app->unlock();
+    apppool->delete_object(app);
 
     switch (type)
     {

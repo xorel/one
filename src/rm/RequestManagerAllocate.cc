@@ -466,7 +466,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
     {
         // This image comes from a MarketPlaceApp. Get the Market info and
         // the size.
-        app = apppool->get(app_id);
+        app = apppool->get_ro(app_id);
 
         if ( app == 0 )
         {
@@ -482,7 +482,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
         size_mb   = app->get_size();
         market_id = app->get_market_id();
 
-        app->unlock();
+        apppool->delete_object(app);
 
         market = marketpool->get(market_id);
 
