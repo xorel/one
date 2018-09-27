@@ -212,7 +212,7 @@ void DatastoreRename::batch_rename(int oid)
 
 void HostRename::batch_rename(int oid)
 {
-    Host * host = static_cast<HostPool*>(pool)->get(oid);
+    Host * host = static_cast<HostPool*>(pool)->get_ro(oid);
 
     if (host == 0)
     {
@@ -225,7 +225,7 @@ void HostRename::batch_rename(int oid)
 
     string host_name = host->get_name();
 
-    host->unlock();
+    static_cast<HostPool*>(pool)->delete_object(host);
 
     VirtualMachine *     vm;
     VirtualMachinePool * vmpool = Nebula::instance().get_vmpool();

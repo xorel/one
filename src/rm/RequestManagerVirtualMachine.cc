@@ -327,7 +327,7 @@ int RequestManagerVirtualMachine::get_host_information(
     Nebula&    nd    = Nebula::instance();
     HostPool * hpool = nd.get_hpool();
 
-    Host *     host  = hpool->get(hid);
+    Host *     host  = hpool->get_ro(hid);
 
     if ( host == 0 )
     {
@@ -342,7 +342,7 @@ int RequestManagerVirtualMachine::get_host_information(
         att.resp_msg = "Host is offline, cannot use it to deploy VM";
         failure_response(ACTION, att);
 
-        host->unlock();
+        hpool->delete_object(host);
 
         return -1;
     }
@@ -356,7 +356,7 @@ int RequestManagerVirtualMachine::get_host_information(
 
     host->get_permissions(host_perms);
 
-    host->unlock();
+    hpool->delete_object(host);
 
     return 0;
 }
@@ -379,7 +379,7 @@ bool RequestManagerVirtualMachine::check_host(
 
     vm->get_requirements(cpu, mem, disk, pci);
 
-    host = hpool->get(hid);
+    host = hpool->get_ro(hid);
 
     if (host == 0)
     {
@@ -407,7 +407,7 @@ bool RequestManagerVirtualMachine::check_host(
         error = oss.str();
     }
 
-    host->unlock();
+    hpool->delete_object(host);
 
     return test;
 }
@@ -1148,7 +1148,7 @@ void VirtualMachineMigrate::request_execute(xmlrpc_c::paramList const& paramList
     vm->unlock();
 
     // Check we are migrating to a compatible cluster
-    Host * host = nd.get_hpool()->get(c_hid);
+    Host * host = nd.get_hpool()->get_ro(c_hid);
 
     if (host == 0)
     {
@@ -1159,7 +1159,7 @@ void VirtualMachineMigrate::request_execute(xmlrpc_c::paramList const& paramList
 
     c_is_public_cloud = host->is_public_cloud();
 
-    host->unlock();
+    nd.get_hpool()->delete_object(host);
 
     if (!cluster_ids.empty() && cluster_ids.count(cluster_id) == 0)
     {

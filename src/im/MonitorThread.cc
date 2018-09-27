@@ -288,13 +288,13 @@ void MonitorThread::do_message()
 
         // The rediscovered set is not stored in the DB, the update method
         // is not needed
-        host = hpool->get(host_id);
+        host = hpool->get_ro(host_id);
 
         if ( host != 0 )
         {
             host->set_prev_rediscovered_vms(rediscovered_vms);
 
-            host->unlock();
+            hpool->delete_object(host);
         }
     }
 };
