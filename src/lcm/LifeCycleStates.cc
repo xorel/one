@@ -968,7 +968,7 @@ void  LifeCycleManager::cleanup_callback_action(int vid)
 
     VirtualMachine::LcmState state;
 
-    vm = vmpool->get(vid);
+    vm = vmpool->get_ro(vid);
 
     if ( vm == 0 )
     {
@@ -2154,7 +2154,7 @@ void LifeCycleManager::disk_snapshot_failure(int vid)
 
 void LifeCycleManager::disk_lock_success(int vid)
 {
-    VirtualMachine * vm = vmpool->get(vid);
+    VirtualMachine * vm = vmpool->get_ro(vid);
     Image *          image;
 
     if ( vm == 0 )

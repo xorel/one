@@ -226,7 +226,7 @@ void MonitorThread::do_message()
 
         for (its = lost.begin(); its != lost.end(); its++)
         {
-            VirtualMachine * vm = vmpool->get(*its);
+            VirtualMachine * vm = vmpool->get_ro(*its);
 
             if (vm == 0)
             {
@@ -262,7 +262,7 @@ void MonitorThread::do_message()
 
         for (itm = found.begin(); itm != found.end(); itm++)
         {
-            VirtualMachine * vm = vmpool->get(itm->first);
+            VirtualMachine * vm = vmpool->get_ro(itm->first);
 
             if (vm == 0)
             {

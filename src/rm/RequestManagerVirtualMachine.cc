@@ -102,7 +102,7 @@ bool RequestManagerVirtualMachine::quota_resize_authorization(
         RequestAttributes&  att)
 {
     PoolObjectAuth      vm_perms;
-    VirtualMachine *    vm = Nebula::instance().get_vmpool()->get(oid);
+    VirtualMachine *    vm = Nebula::instance().get_vmpool()->get_ro(oid);
 
     if (vm == 0)
     {
@@ -1898,7 +1898,7 @@ void VirtualMachineResize::request_execute(xmlrpc_c::paramList const& paramList,
     tmpl.get("VCPU", nvcpu);
     tmpl.get("MEMORY", nmemory);
 
-    vm = vmpool->get(id);
+    vm = vmpool->get_ro(id);
 
     if (vm == 0)
     {
@@ -2313,7 +2313,7 @@ Request::ErrorCode VirtualMachineAttachNic::request_execute(int id,
     // -------------------------------------------------------------------------
     // Authorize the operation, restricted attributes & check quotas
     // -------------------------------------------------------------------------
-    vm = vmpool->get(id);
+    vm = vmpool->get_ro(id);
 
     if ( vm == 0 )
     {
@@ -2434,7 +2434,7 @@ Request::ErrorCode VirtualMachineDetachNic::request_execute(int id, int nic_id,
     // -------------------------------------------------------------------------
     // Authorize the operation
     // -------------------------------------------------------------------------
-    vm = vmpool->get(id);
+    vm = vmpool->get_ro(id);
 
     if ( vm == 0 )
     {
