@@ -199,7 +199,7 @@ void get_network_attribute(VirtualMachine * vm,
     // ----------------------------------------------
     // Get the attribute template from the image
     // ----------------------------------------------
-    vn = vnpool->get(vnet_id);
+    vn = vnpool->get_ro(vnet_id);
 
     if ( vn == 0 )
     {

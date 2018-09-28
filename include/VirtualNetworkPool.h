@@ -98,6 +98,18 @@ public:
     };
 
     /**
+     *  Function to get a read only VN from the pool, if the object is not in memory
+     *  it is loaded from the DB
+     *    @param oid VN unique id
+     *    @param lock locks the VN mutex
+     *    @return a pointer to the VN, 0 if the VN could not be loaded
+     */
+    VirtualNetwork * get_ro(int oid)
+    {
+        return static_cast<VirtualNetwork *>(PoolSQL::get_ro(oid));
+    };
+
+    /**
      *  Gets an object from the pool (if needed the object is loaded from the
      *  database).
      *   @param name of the object
@@ -109,6 +121,20 @@ public:
     VirtualNetwork * get(const string& name, int uid)
     {
         return static_cast<VirtualNetwork *>(PoolSQL::get(name,uid));
+    };
+
+    /**
+     *  Gets a read only object from the pool (if needed the object is loaded from the
+     *  database).
+     *   @param name of the object
+     *   @param uid id of owner
+     *   @param lock locks the object if true
+     *
+     *   @return a pointer to the object, 0 in case of failure
+     */
+    VirtualNetwork * get_ro(const string& name, int uid)
+    {
+        return static_cast<VirtualNetwork *>(PoolSQL::get_ro(name,uid));
     };
 
     /**
