@@ -750,9 +750,12 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
 
     bool auth = false;
     int rc;
+    int has_net_mode, nic_id;
+    string net_mode;
 
     VirtualMachinePool * vmpool = static_cast<VirtualMachinePool *>(pool);
 
+    VirtualMachineNic * nic;
     // ------------------------------------------------------------------------
     // Get request parameters and information about the target host
     // ------------------------------------------------------------------------
@@ -800,27 +803,6 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
         return;
     }
 
-    // ------------------------------------------------------------------------
-    // Get information about the system DS to use (tm_mad & permissions)
-    // ------------------------------------------------------------------------
-
-    if ((vm = get_vm(id, att)) == 0)
-    {
-        return;
-    }
-
-    if (vm->hasHistory() &&
-        (vm->get_action() == History::STOP_ACTION ||
-         vm->get_action() == History::UNDEPLOY_ACTION ||
-         vm->get_action() == History::UNDEPLOY_HARD_ACTION))
-    {
-        ds_id = vm->get_ds_id();
-    }
-
-    vm->get_permissions(vm_perms);
-
-    vm->unlock();
-
     AuthRequest ar(att.uid, att.group_ids);
 
     ar.add_auth(AuthRequest::MANAGE, vm_perms);
@@ -854,46 +836,24 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
         return;
     }
 
-    vm = get_vm(id, att);
+    // ------------------------------------------------------------------------
+    // Get information about the system DS to use (tm_mad & permissions)
+    // ------------------------------------------------------------------------
 
-    vector<VectorAttribute *> vnics;
-    tmpl.get("NIC", vnics);
-    VirtualMachineNic * nic;
-    int has_net_mode;
-    string net_mode;
-    int nic_id;
-
-    for (vector<VectorAttribute*>::iterator it = vnics.begin(); it != vnics.end(); it++)
+    if ((vm = get_vm(id, att)) == 0)
     {
-        (*it)->vector_value("NIC_ID", nic_id);
-
-        nic = vm->get_nic(nic_id);
-
-        has_net_mode = (*it)->vector_value("NETWORK_MODE", net_mode);
-        one_util::toupper(net_mode);
-
-        if ( nic == 0 || ( has_net_mode != 0 ) || ( has_net_mode == 0 && net_mode != "AUTO" ) )
-        {
-            att.resp_msg = "NIC_ID not found or not AUTO";
-            failure_response(NO_EXISTS, att);
-
-            vm->unlock();
-            return;
-        }
-
-        nic->replace("NETWORK", (*it)->vector_value("NETWORK"));
-    }
-
-    if ( vm->get_network_leases(error_str, true) != 0 || vm->parse_context(error_str, true) != 0 )
-    {
-        att.resp_msg = error_str;
-        failure_response(ACTION, att);
-
-        vm->unlock();
         return;
     }
 
-    vmpool->update(vm);
+    if (vm->hasHistory() &&
+        (vm->get_action() == History::STOP_ACTION ||
+         vm->get_action() == History::UNDEPLOY_ACTION ||
+         vm->get_action() == History::UNDEPLOY_HARD_ACTION))
+    {
+        ds_id = vm->get_ds_id();
+    }
+
+    vm->get_permissions(vm_perms);
 
     vm->unlock();
 
@@ -1006,6 +966,41 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
         failure_response(ACTION, att);
         return;
     }
+
+    vector<VectorAttribute *> vnics;
+    tmpl.get("NIC", vnics);
+
+    for (vector<VectorAttribute*>::iterator it = vnics.begin(); it != vnics.end(); it++)
+    {
+        (*it)->vector_value("NIC_ID", nic_id);
+
+        nic = vm->get_nic(nic_id);
+
+        has_net_mode = (*it)->vector_value("NETWORK_MODE", net_mode);
+        one_util::toupper(net_mode);
+
+        if ( nic == 0 || ( has_net_mode != 0 ) || ( has_net_mode == 0 && net_mode != "AUTO" ) )
+        {
+            att.resp_msg = "NIC_ID not found or not AUTO";
+            failure_response(NO_EXISTS, att);
+
+            vm->unlock();
+            return;
+        }
+
+        nic->replace("NETWORK", (*it)->vector_value("NETWORK"));
+    }
+
+    if ( vm->get_network_leases(error_str, true) != 0 || vm->parse_context(error_str, true) != 0 )
+    {
+        att.resp_msg = error_str;
+        failure_response(ACTION, att);
+
+        vm->unlock();
+        return;
+    }
+
+    vmpool->update(vm);
 
     // ------------------------------------------------------------------------
     // Add deployment dependent attributes to VM
