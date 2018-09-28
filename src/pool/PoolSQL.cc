@@ -176,6 +176,8 @@ PoolObjectSQL * PoolSQL::get(int oid)
 
     objectsql->oid = oid;
 
+    objectsql->ro = false;
+
     int rc = objectsql->select(db);
 
     if ( rc != 0 )
@@ -209,6 +211,8 @@ PoolObjectSQL * PoolSQL::get_ro(int oid)
     objectsql = create();
 
     objectsql->oid = oid;
+
+    objectsql->ro = true;
 
     int rc = objectsql->select(db);
 
