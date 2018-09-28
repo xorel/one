@@ -94,7 +94,7 @@ void VirtualRouterInstantiate::request_execute(
         return;
     }
 
-    VMTemplate * tmpl = tpool->get(tmpl_id);
+    VMTemplate * tmpl = tpool->get_ro(tmpl_id);
 
     if ( tmpl == 0 )
     {

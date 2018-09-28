@@ -210,7 +210,7 @@ Request::ErrorCode TemplateChmod::chmod(
 		return SUCCESS;
     }
 
-	VMTemplate* tmpl = static_cast<VMTemplatePool*>(pool)->get(oid);
+	VMTemplate* tmpl = static_cast<VMTemplatePool*>(pool)->get_ro(oid);
 
 	vector<VectorAttribute *> vdisks;
 	vector<VectorAttribute *>::iterator i;
