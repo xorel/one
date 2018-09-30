@@ -138,7 +138,7 @@ void get_image_attribute(VirtualMachine * vm,
         img->get_template_attribute(attr_name.c_str(), attr_value);
     }
 
-    ipool->delete_object(img);
+    img->unlock();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -248,7 +248,7 @@ void get_user_attribute(VirtualMachine * vm,
         user->get_template_attribute(attr_name.c_str(),attr_value);
     }
 
-    upool->delete_object(user);
+    user->unlock();
 }
 
 /* -------------------------------------------------------------------------- */

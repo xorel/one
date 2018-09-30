@@ -581,18 +581,10 @@ void TransferManager::prolog_action(int vid)
         return;
     }
 
-    int uid = vm->get_created_by_uid();
+    int uid      = vm->get_created_by_uid();
     int owner_id = vm->get_uid();
-    vm->unlock();
 
     token_password = Nebula::instance().get_upool()->get_token_password(uid, owner_id);
-
-    vm = vmpool->get(vid);
-
-    if (vm == 0)
-    {
-        return;
-    }
 
     VirtualMachineDisks& disks = vm->get_disks();
 
@@ -875,18 +867,10 @@ void TransferManager::prolog_resume_action(int vid)
         return;
     }
 
-    int uid = vm->get_created_by_uid();
+    int uid      = vm->get_created_by_uid();
     int owner_id = vm->get_uid();
-    vm->unlock();
 
     token_password = Nebula::instance().get_upool()->get_token_password(uid, owner_id);
-
-    vm = vmpool->get_ro(vid);
-
-    if (vm == 0)
-    {
-        return;
-    }
 
     VirtualMachineDisks& disks = vm->get_disks();
 

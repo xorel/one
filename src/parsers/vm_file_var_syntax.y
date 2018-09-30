@@ -157,7 +157,7 @@ int get_image_path(VirtualMachine * vm,
 
     img->get_permissions(perm);
 
-    ipool->delete_object(img);
+    img->unlock();;
 
     set<int> gids;
 
@@ -166,7 +166,7 @@ int get_image_path(VirtualMachine * vm,
     if (user != 0)
     {
         gids = user->get_groups();
-        upool->delete_object(user);
+        user->unlock();
     }
     else
     {

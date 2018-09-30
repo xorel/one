@@ -988,7 +988,7 @@ bool UserPool::authenticate_server(User *        user,
         goto auth_failure_driver;
     }
 
-    user = get_ro(user_id);
+    user = get(user_id);
 
     if (user != 0)
     {
