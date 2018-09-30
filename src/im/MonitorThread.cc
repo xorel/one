@@ -262,7 +262,7 @@ void MonitorThread::do_message()
 
         for (itm = found.begin(); itm != found.end(); itm++)
         {
-            VirtualMachine * vm = vmpool->get_ro(itm->first);
+            VirtualMachine * vm = vmpool->get(itm->first);
 
             if (vm == 0)
             {
@@ -288,6 +288,9 @@ void MonitorThread::do_message()
 
         // The rediscovered set is not stored in the DB, the update method
         // is not needed
+        
+
+        //TODO ADD POOL METHOD TO NOT LOAD THE HOST AGAIN
         host = hpool->get(host_id);
 
         if ( host != 0 )
