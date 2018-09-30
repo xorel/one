@@ -1590,7 +1590,7 @@ void VirtualMachineMonitoring::request_execute(
     int  id = xmlrpc_c::value_int(paramList.getInt(1));
     int  rc;
 
-    ostringstream oss;
+    string oss;
 
     bool auth = vm_authorization(id, 0, 0, att, 0, 0, 0, auth_op);
 
@@ -1608,7 +1608,7 @@ void VirtualMachineMonitoring::request_execute(
         return;
     }
 
-    success_response(oss.str(), att);
+    success_response(oss, att);
 
     return;
 }

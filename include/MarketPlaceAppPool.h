@@ -126,7 +126,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump(std::ostringstream& oss, const std::string& where,
+    int dump(std::string& oss, const std::string& where,
 		const std::string& limit, bool desc)
     {
         return PoolSQL::dump(oss, "MARKETPLACEAPP_POOL", MarketPlaceApp::table,

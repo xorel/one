@@ -172,7 +172,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump(ostringstream& oss, const string& where, bool desc)
+    int dump(string& oss, const string& where, bool desc)
     {
         return dump(oss, where, "", desc);
     }
@@ -188,7 +188,7 @@ public:
      *  @return 0 on success
      */
 
-    virtual int dump(ostringstream& oss, const string& where,
+    virtual int dump(string& oss, const string& where,
                      const string& limit, bool desc) = 0;
 
     // -------------------------------------------------------------------------
@@ -282,7 +282,7 @@ protected:
      *
      *  @return 0 on success
      */
-    int dump(ostringstream& oss,
+    int dump(string& oss,
              const string&  elem_name,
              const char *   table,
              const string&  where,
@@ -300,7 +300,7 @@ protected:
      *
      *  @return 0 on success
      */
-    int dump(ostringstream& oss,
+    int dump(string& oss,
              const string&  elem_name,
              const char *   table,
              const string&  where,
@@ -318,17 +318,9 @@ protected:
      *
      *   @return 0 on success
      */
-    int dump(ostringstream&  oss,
+    int dump(string&  oss,
              const string&   root_elem_name,
              ostringstream&  sql_query);
-
-    /**
-     * Child classes can add extra elements to the dump xml, right after all the
-     * pool objects
-     *
-     * @param oss The output stream to dump the xml contents
-     */
-    virtual void add_extra_xml(ostringstream&  oss){};
 
     /* ---------------------------------------------------------------------- */
     /* Interface to access the lastOID assigned by the pool                   */

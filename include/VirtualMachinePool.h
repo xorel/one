@@ -250,7 +250,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump(ostringstream& oss, const string& where, const string& limit,
+    int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
         return PoolSQL::dump(oss, "VM_POOL", VirtualMachine::table, where,
@@ -265,7 +265,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump_acct(ostringstream& oss,
+    int dump_acct(string& oss,
                   const string&  where,
                   int            time_start,
                   int            time_end);
@@ -286,7 +286,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump_showback(ostringstream& oss,
+    int dump_showback(string& oss,
                       const string&  where,
                       int            start_month,
                       int            start_year,
@@ -302,8 +302,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump_monitoring(ostringstream& oss,
-                        const string&  where);
+    int dump_monitoring(string& oss, const string&  where);
 
     /**
      *  Dumps the VM monitoring information  for a single VM
@@ -313,8 +312,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump_monitoring(ostringstream& oss,
-                        int            vmid)
+    int dump_monitoring(string& oss, int vmid)
     {
         ostringstream filter;
 

@@ -213,7 +213,7 @@ PoolObjectSQL * PoolSQL::get(const string& name, int ouid)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-int PoolSQL::dump(ostringstream& oss, const string& elem_name, const char* table,
+int PoolSQL::dump(string& oss, const string& elem_name, const char* table,
     const string& where, const string& limit, bool desc)
 {
     ostringstream   cmd;
@@ -243,24 +243,30 @@ int PoolSQL::dump(ostringstream& oss, const string& elem_name, const char* table
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-int PoolSQL::dump(ostringstream& oss, const string& root_elem_name,
+int PoolSQL::dump(string& oss, const string& root_elem_name,
     ostringstream& sql_query)
 {
     int rc;
 
-    stream_cb cb(1);
+    string_cb cb(1);
 
-    oss << "<" << root_elem_name << ">";
+    ostringstream oelem; 
+
+    oelem << "<" << root_elem_name << ">";
+
+    oss.append(oelem.str());
 
     cb.set_callback(&oss);
 
     rc = db->exec_rd(sql_query, &cb);
 
-    add_extra_xml(oss);
-
-    oss << "</" << root_elem_name << ">";
-
     cb.unset_callback();
+
+    oelem.str("");
+
+    oelem << "</" << root_elem_name << ">";
+
+    oss.append(oelem.str());
 
     return rc;
 }

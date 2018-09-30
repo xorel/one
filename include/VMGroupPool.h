@@ -104,7 +104,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump(std::ostringstream& os, const std::string& where,
+    int dump(std::string& os, const std::string& where,
             const std::string& limit, bool desc)
     {
         return PoolSQL::dump(os, "VM_GROUP_POOL", VMGroup::table, where, limit,

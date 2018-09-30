@@ -1275,7 +1275,7 @@ int UserPool::authorize(AuthRequest& ar)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-int UserPool::dump(ostringstream& oss, const string& where, const string& limit,
+int UserPool::dump(string& oss, const string& where, const string& limit,
         bool desc)
 {
     int     rc;
@@ -1305,9 +1305,9 @@ int UserPool::dump(ostringstream& oss, const string& where, const string& limit,
         cmd << " LIMIT " << limit;
     }
 
-    oss << "<USER_POOL>";
+    oss.append("<USER_POOL>");
 
-    stream_cb cb(2);
+    string_cb cb(2);
 
     cb.set_callback(&oss);
 
@@ -1315,9 +1315,9 @@ int UserPool::dump(ostringstream& oss, const string& where, const string& limit,
 
     cb.unset_callback();
 
-    oss << Nebula::instance().get_default_user_quota().to_xml(def_quota_xml);
+    oss.append(Nebula::instance().get_default_user_quota().to_xml(def_quota_xml));
 
-    oss << "</USER_POOL>";
+    oss.append("</USER_POOL>");
 
     return rc;
 }

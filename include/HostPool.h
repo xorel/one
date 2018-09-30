@@ -225,7 +225,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump(ostringstream& oss, const string& where, const string& limit,
+    int dump(string& oss, const string& where, const string& limit,
         bool desc)
     {
         return PoolSQL::dump(oss, "HOST_POOL", Host::table, where, limit, desc);
@@ -253,8 +253,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump_monitoring(ostringstream& oss,
-                        const string&  where);
+    int dump_monitoring(string& oss, const string&  where);
 
     /**
      *  Dumps the HOST monitoring information for a single HOST
@@ -264,8 +263,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump_monitoring(ostringstream& oss,
-                        int            hostid)
+    int dump_monitoring(string& oss, int hostid)
     {
         ostringstream filter;
 

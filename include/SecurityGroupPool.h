@@ -100,7 +100,7 @@ public:
      *
      *  @return 0 on success
      */
-    int dump(ostringstream& oss, const string& where, const string& limit,
+    int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
         return PoolSQL::dump(oss, "SECURITY_GROUP_POOL", SecurityGroup::table,
