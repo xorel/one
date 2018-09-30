@@ -473,12 +473,12 @@ public:
             {
                 if ( uconf->vector_value(name, value) == 0 )
                 {
-                    upool->delete_object(user);
+                    user->unlock();
                     return 0;
                 }
             }
 
-            upool->delete_object(user);
+            user->unlock();
         }
 
         Group * group = gpool->get_ro(gid);
@@ -496,12 +496,12 @@ public:
         {
             if ( gconf->vector_value(name, value) == 0 )
             {
-                gpool->delete_object(group);
+                group->unlock();
                 return 0;
             }
         }
 
-        gpool->delete_object(group);
+        group->unlock();
 
         nebula_configuration->get(name, value);
 

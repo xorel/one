@@ -504,7 +504,7 @@ void UserChown::request_execute(xmlrpc_c::paramList const& paramList,
     auth_driver = user->get_auth_driver();
     new_group   = user->get_groups().count(ngid) != 1;
 
-    upool->delete_object(user);
+    user->unlock();
 
     if ( Nebula::instance().get_auth_conf_attribute(auth_driver,
             "DRIVER_MANAGED_GROUPS", driver_managed_groups) != 0 )

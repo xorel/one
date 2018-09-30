@@ -162,7 +162,7 @@ protected:
 
         int dtype = doc->get_document_type();
 
-        docpool->delete_object(doc);
+        doc->unlock();
 
         return docpool->allocate(att.uid, att.gid, att.uname, att.gname,
             att.umask, dtype, tmpl, &id, att.resp_msg);

@@ -152,7 +152,7 @@ void MonitorThread::do_message()
         {
             cluster->get_reserved_capacity(reserved_cpu, reserved_mem);
 
-            cpool->delete_object(cluster);
+            cluster->unlock();
         }
     }
 
@@ -170,7 +170,7 @@ void MonitorThread::do_message()
             non_shared_ds.insert(itm->first);
         }
 
-        dspool->delete_object(ds);
+        ds->unlock();
     }
 
     // -------------------------------------------------------------------------
@@ -294,7 +294,7 @@ void MonitorThread::do_message()
         {
             host->set_prev_rediscovered_vms(rediscovered_vms);
 
-            hpool->delete_object(host);
+            host->unlock();
         }
     }
 };

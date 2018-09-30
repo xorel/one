@@ -239,7 +239,7 @@ void MarketPlaceManager::monitor_market(int mp_id)
         return;
     }
 
-    MarketPlace * mp = mppool->get_ro(mp_id);
+    MarketPlace * mp = mppool->get(mp_id);
 
     if ( mp == 0 )
     {
@@ -253,20 +253,20 @@ void MarketPlaceManager::monitor_market(int mp_id)
         NebulaLog::log("MKP", Log::DEBUG, "Monitoring disabled for market: " +
                 mp_name);
 
-        mppool->delete_object(mp);
+        mp->unlock();
 
         return;
     }
 
     if ( mp->get_zone_id() != Nebula::instance().get_zone_id() )
     {
-        mppool->delete_object(mp);
+        mp->unlock();
         return;
     }
 
     mp->to_xml(mp_data);
 
-    mppool->delete_object(mp);
+    mp->unlock();
 
     drv_msg = MarketPlaceManager::format_message("", mp_data, "");
 

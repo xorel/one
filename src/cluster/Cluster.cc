@@ -171,7 +171,7 @@ int Cluster::get_default_system_ds(const set<int>& ds_set)
             return *it;
         }
 
-        dspool->delete_object(ds);
+        ds->unlock();
     }
 
     return -1;

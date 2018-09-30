@@ -469,7 +469,7 @@ int ImageManager::delete_image(int iid, string& error_str)
 
     ds_id = img->get_ds_id();
 
-    ipool->delete_object(img);
+    img->unlock();
 
     ds = dspool->get_ro(ds_id);
 
@@ -481,7 +481,7 @@ int ImageManager::delete_image(int iid, string& error_str)
 
     ds->to_xml(ds_data);
 
-    dspool->delete_object(ds);
+    ds->unlock();
 
     img = ipool->get(iid);
 
@@ -656,7 +656,7 @@ int ImageManager::can_clone_image(int cloning_id, ostringstream&  oss_error)
 
     Image::ImageState state = img->get_state();
 
-    ipool->delete_object(img);
+    img->unlock();
 
     switch(state)
     {
@@ -789,7 +789,7 @@ int ImageManager::clone_image(int   new_id,
 
     NebulaLog::log("ImM", Log::INFO, oss);
 
-    ipool->delete_object(img);
+    img->unlock();
 
     delete drv_msg;
 
@@ -1118,7 +1118,7 @@ int ImageManager::delete_snapshot(int iid, int sid, string& error)
     /* ---------------------------------------------------------------------- */
     int ds_id = img->get_ds_id();
 
-    ipool->delete_object(img);
+    img->unlock();
 
     string ds_data;
 
@@ -1132,7 +1132,7 @@ int ImageManager::delete_snapshot(int iid, int sid, string& error)
 
     ds->to_xml(ds_data);
 
-    dspool->delete_object(ds);
+    ds->unlock();
 
     /* ---------------------------------------------------------------------- */
     /*  Check action consistency:                                             */
@@ -1211,7 +1211,7 @@ int ImageManager::revert_snapshot(int iid, int sid, string& error)
     /* ---------------------------------------------------------------------- */
     int ds_id = img->get_ds_id();
 
-    ipool->delete_object(img);
+    img->unlock();
 
     string ds_data;
 
@@ -1225,7 +1225,7 @@ int ImageManager::revert_snapshot(int iid, int sid, string& error)
 
     ds->to_xml(ds_data);
 
-    dspool->delete_object(ds);
+    ds->unlock();
 
     /* ---------------------------------------------------------------------- */
     /*  Check action consistency:                                             */
@@ -1315,7 +1315,7 @@ int ImageManager::flatten_snapshot(int iid, int sid, string& error)
     /* ---------------------------------------------------------------------- */
     int ds_id = img->get_ds_id();
 
-    ipool->delete_object(img);
+    img->unlock();
 
     string ds_data;
 
@@ -1329,7 +1329,7 @@ int ImageManager::flatten_snapshot(int iid, int sid, string& error)
 
     ds->to_xml(ds_data);
 
-    dspool->delete_object(ds);
+    ds->unlock();
 
     /* ---------------------------------------------------------------------- */
     /*  Check action consistency:                                             */

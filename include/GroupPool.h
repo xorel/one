@@ -114,7 +114,7 @@ public:
 
         const string& gname = group->get_name();
 
-        delete_object(group);
+        group->unlock();
 
         return gname;
     }

@@ -145,7 +145,7 @@ void ClusterRename::batch_rename(int oid)
 
     string cluster_name    = cluster->get_name();
 
-    pool->delete_object(cluster);
+    cluster->unlock();
 
     Host *              host;
     HostPool*           hpool = Nebula::instance().get_hpool();
@@ -185,7 +185,7 @@ void DatastoreRename::batch_rename(int oid)
 
     string image_name = datastore->get_name();
 
-    pool->delete_object(datastore);
+    datastore->unlock();
 
     Image *     image;
     ImagePool * ipool = Nebula::instance().get_ipool();
@@ -225,7 +225,7 @@ void HostRename::batch_rename(int oid)
 
     string host_name = host->get_name();
 
-    static_cast<HostPool*>(pool)->delete_object(host);
+    host->unlock();
 
     VirtualMachine *     vm;
     VirtualMachinePool * vmpool = Nebula::instance().get_vmpool();
@@ -265,7 +265,7 @@ void MarketPlaceRename::batch_rename(int oid)
 
     std::string market_name = market->get_name();
 
-    static_cast<MarketPlacePool*>(pool)->delete_object(market);
+    market->unlock();
 
     MarketPlaceApp *     app;
     MarketPlaceAppPool * apppool = Nebula::instance().get_apppool();

@@ -223,7 +223,7 @@ void UserEditGroup::
 
     auth_driver = user->get_auth_driver();
 
-    upool->delete_object(user);
+    user->unlock();
 
     bool driver_managed_groups;
 
@@ -426,7 +426,7 @@ void UserLogin::request_execute(xmlrpc_c::paramList const& paramList,
 
     user->get_permissions(perms);
 
-    pool->delete_object(user);
+    user->unlock();
 
     AuthRequest ar(att.uid, att.group_ids);
 

@@ -502,7 +502,7 @@ int VirtualMachine::parse_context(string& error_str)
                     type  = img->get_type();
                     state = img->get_state();
 
-                    ipool->delete_object(img);
+                    img->unlock();
 
                     if (type != Image::CONTEXT)
                     {

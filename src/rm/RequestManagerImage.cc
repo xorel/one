@@ -122,12 +122,12 @@ Request::ErrorCode ImagePersistent::request_execute(
     {
         att.resp_msg = "Cannot change persistent state for non-managed images";
 
-        ipool->delete_object(image);
+        image->unlock();
 
         return ACTION;
     }
 
-    ipool->delete_object(image);
+    image->unlock();
 
     ds = dspool->get_ro(ds_id);
 
@@ -140,7 +140,7 @@ Request::ErrorCode ImagePersistent::request_execute(
 
     ds_persistent_only = ds->is_persistent_only();
 
-    dspool->delete_object(ds);
+    ds->unlock();
 
     image = ipool->get(id);
 
@@ -390,7 +390,7 @@ Request::ErrorCode ImageClone::request_execute(
 
     size = img->get_size();
 
-    ipool->delete_object(img);
+    img->unlock();
 
     //--------------------------------------------------------------------------
     // Set image persistent attribute
@@ -438,7 +438,7 @@ Request::ErrorCode ImageClone::request_execute(
     ds_mad   = ds->get_ds_mad();
     tm_mad   = ds->get_tm_mad();
 
-    dspool->delete_object(ds);
+    ds->unlock();
 
     if (ds_id != ds_id_orig) //check same DS_MAD
     {
@@ -457,7 +457,7 @@ Request::ErrorCode ImageClone::request_execute(
         {
             att.resp_msg = "Clone only supported for IMAGE_DS Datastores";
 
-            dspool->delete_object(ds);
+            ds->unlock();
 
             delete tmpl;
             return ACTION;
@@ -467,7 +467,7 @@ Request::ErrorCode ImageClone::request_execute(
         {
             att.resp_msg = "Clone only supported to same DS_MAD Datastores";
 
-            dspool->delete_object(ds);
+            ds->unlock();
 
             delete tmpl;
             return ACTION;
@@ -475,7 +475,7 @@ Request::ErrorCode ImageClone::request_execute(
 
         ds->get_permissions(ds_perms_orig);
 
-        dspool->delete_object(ds);
+        ds->unlock();
     }
 
     // ------------- Set authorization request ---------------------------------

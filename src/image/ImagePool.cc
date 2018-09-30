@@ -460,7 +460,7 @@ void ImagePool::disk_attribute(
 
         datastore_id = img->get_ds_id();
 
-        delete_object(img);
+        img->unlock();
 
         ds_pool->disk_attribute(datastore_id, disk);
     }

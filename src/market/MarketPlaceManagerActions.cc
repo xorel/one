@@ -60,7 +60,7 @@ int MarketPlaceManager::import_app(
 	int app_id    = app->get_oid();
     int origin_id = app->get_origin_id();
 
-    apppool->delete_object(app);
+    app->unlock();
 
     switch (type)
     {
@@ -76,7 +76,7 @@ int MarketPlaceManager::import_app(
 
             ds_id = image->get_ds_id();
 
-            ipool->delete_object(image);
+            image->unlock();
 
             ds = dspool->get_ro(ds_id);
 
@@ -87,7 +87,7 @@ int MarketPlaceManager::import_app(
 
             ds->to_xml(ds_data);
 
-            dspool->delete_object(ds);
+            ds->unlock();
 
 			if (imagem->set_app_clone_state(app_id, origin_id, err) != 0)
 			{
@@ -169,7 +169,7 @@ void MarketPlaceManager::release_app_resources(int appid)
 
     int iid = app->get_origin_id();
 
-    apppool->delete_object(app);
+    app->unlock();
 
     switch (type)
     {
@@ -219,7 +219,7 @@ int MarketPlaceManager::delete_app(int appid, const std::string& market_data,
 
     int market_id = app->get_market_id();
 
-    apppool->delete_object(app);
+    app->unlock();
 
     switch (type)
     {

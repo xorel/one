@@ -1092,7 +1092,7 @@ int DispatchManager::delete_vm(VirtualMachine * vm, const RequestAttributes& ra,
 
         is_public_host = host->is_public_cloud();
 
-        hpool->delete_object(host);
+        host->unlock();
     }
 
     oss << "Deleting VM " << vm->get_oid();

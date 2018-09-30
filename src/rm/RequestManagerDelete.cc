@@ -545,14 +545,14 @@ int MarketPlaceAppDelete::drop(PoolObjectSQL * object, bool recursive,
     if ( !mp->is_action_supported(MarketPlaceApp::DELETE) )
     {
         att.resp_msg = "Delete disabled for market: " + mp_name;
-        marketpool->delete_object(mp);
+        mp->unlock();
 
         return -1;
     }
 
     mp->to_xml(mp_data);
 
-   marketpool->delete_object(mp);
+    mp->unlock();
 
     return marketm->delete_app(oid, mp_data, att.resp_msg);
 }

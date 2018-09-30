@@ -286,7 +286,7 @@ int DatastorePool::disk_attribute(int ds_id, VirtualMachineDisk * disk)
 
     ds->disk_attribute(disk, inherit_attrs);
 
-    delete_object(ds);
+    ds->unlock();
 
     return 0;
 }

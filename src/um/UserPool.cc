@@ -87,7 +87,7 @@ UserPool::UserPool(SqlDB * db,
         }
 
         oneadmin_name = oneadmin_user->get_name();
-        delete_object(oneadmin_user);
+        oneadmin_user->unlock();
 
         return;
     }
@@ -95,7 +95,7 @@ UserPool::UserPool(SqlDB * db,
     if (oneadmin_user != 0)
     {
         oneadmin_name = oneadmin_user->get_name();
-        delete_object(oneadmin_user);
+        oneadmin_user->unlock();
 
         register_hooks(hook_mads, remotes_location);
 
@@ -962,7 +962,7 @@ bool UserPool::authenticate_server(User *        user,
 
     umask  = user->get_umask();
 
-    delete_object(user);
+    user->unlock();
 
     if (result)
     {
@@ -993,7 +993,7 @@ bool UserPool::authenticate_server(User *        user,
     if (user != 0)
     {
         user->session->set(second_token, _session_expiration_time);
-        delete_object(user);
+        user->unlock();
     }
 
     return true;
@@ -1333,14 +1333,16 @@ string UserPool::get_token_password(int oid, int bck_oid){
     if (user != 0)
     {
         user->get_template_attribute("TOKEN_PASSWORD", token_password);
-        delete_object(user);
+        user->unlock();
     }
-    else{
+    else
+    {
         user = get_ro(bck_oid);
+
         if (user != 0)
         {
             user->get_template_attribute("TOKEN_PASSWORD", token_password);
-            delete_object(user);
+            user->unlock();
         }
     }
     return token_password;

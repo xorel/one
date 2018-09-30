@@ -55,7 +55,7 @@ SecurityGroupPool::SecurityGroupPool(SqlDB * db):PoolSQL(db,SecurityGroup::table
                 oneadmin->get_umask(),
                 default_tmpl);
 
-        upool->delete_object(oneadmin);
+        oneadmin->unlock();
 
         secgroup->set_permissions(1,1,1,1,0,0,1,0,0,error);
 

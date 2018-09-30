@@ -207,7 +207,7 @@ string * VirtualMachineManager::format_message(
     if ( ds != 0 )
     {
         ds->to_xml(ds_tmpl);
-        ds_pool->delete_object(ds);
+        ds->unlock();
     }
 
     oss << "<VMM_DRIVER_ACTION_DATA>"

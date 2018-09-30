@@ -1958,7 +1958,7 @@ void LifeCycleManager::disk_snapshot_success(int vid)
                 int img_uid = img->get_uid();
                 int img_gid = img->get_gid();
 
-                ipool->delete_object(img);
+                img->unlock();
 
                 Quotas::ds_del(img_uid, img_gid, ds_quotas);
             }
@@ -2102,7 +2102,7 @@ void LifeCycleManager::disk_snapshot_failure(int vid)
                 int img_uid = img->get_uid();
                 int img_gid = img->get_gid();
 
-                ipool->delete_object(img);
+                img->unlock();
 
                 Quotas::ds_del(img_uid, img_gid, ds_quotas);
             }
@@ -2207,7 +2207,7 @@ void LifeCycleManager::disk_lock_success(int vid)
                     break;
             }
 
-            ipool->delete_object(image);
+            image->unlock();
         }
     }
 
@@ -2409,7 +2409,7 @@ void LifeCycleManager::disk_resize_failure(int vid)
             int img_uid = img->get_uid();
             int img_gid = img->get_gid();
 
-            ipool->delete_object(img);
+            img->unlock();
 
             Quotas::ds_del(img_uid, img_gid, &ds_deltas);
         }

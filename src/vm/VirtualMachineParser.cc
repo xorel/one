@@ -131,7 +131,7 @@ int VirtualMachine::set_os_file(VectorAttribute* os, const string& base_name,
     os->replace(base_name_source, img->get_source());
     os->replace(base_name_ds_id,  img->get_ds_id());
 
-    ipool->delete_object(img);
+    img->unlock();
 
     type_str = Image::type_to_str(type);
 
@@ -174,7 +174,7 @@ int VirtualMachine::set_os_file(VectorAttribute* os, const string& base_name,
         os->replace(base_name_cluster, one_util::join(cluster_ids, ','));
     }
 
-    ds_pool->delete_object(ds);
+    ds->unlock();
 
     return 0;
 }

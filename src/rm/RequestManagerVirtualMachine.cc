@@ -233,7 +233,7 @@ int RequestManagerVirtualMachine::get_default_ds_information(
 
     set<int> ds_ids = cluster->get_datastores();
 
-    clpool->delete_object(cluster);
+    cluster->unlock();
 
     ds_id = Cluster::get_default_system_ds(ds_ids);
 
@@ -293,7 +293,7 @@ int RequestManagerVirtualMachine::get_ds_information(int ds_id,
 
         failure_response(INTERNAL, att);
 
-        nd.get_dspool()->delete_object(ds);
+        ds->unlock();
 
         return -1;
     }
@@ -304,7 +304,7 @@ int RequestManagerVirtualMachine::get_ds_information(int ds_id,
 
     ds->get_template_attribute("DS_MIGRATE", ds_migr);
 
-    nd.get_dspool()->delete_object(ds);
+    ds->unlock();
 
     return 0;
 }
@@ -342,7 +342,7 @@ int RequestManagerVirtualMachine::get_host_information(
         att.resp_msg = "Host is offline, cannot use it to deploy VM";
         failure_response(ACTION, att);
 
-        hpool->delete_object(host);
+        host->unlock();
 
         return -1;
     }
@@ -356,7 +356,7 @@ int RequestManagerVirtualMachine::get_host_information(
 
     host->get_permissions(host_perms);
 
-    hpool->delete_object(host);
+    host->unlock();
 
     return 0;
 }
@@ -407,7 +407,7 @@ bool RequestManagerVirtualMachine::check_host(
         error = oss.str();
     }
 
-    hpool->delete_object(host);
+    host->unlock();
 
     return test;
 }
@@ -859,7 +859,7 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
 
         ds->get_permissions(ds_perms);
 
-        dspool->delete_object(ds);
+        ds->unlock();
 
         auth_ds_perms = &ds_perms;
     }
@@ -1039,7 +1039,7 @@ void VirtualMachineMigrate::request_execute(xmlrpc_c::paramList const& paramList
 
         ds->get_permissions(ds_perms);
 
-        dspool->delete_object(ds);
+        ds->unlock();
 
         auth_ds_perms = &ds_perms;
     }
@@ -1159,7 +1159,7 @@ void VirtualMachineMigrate::request_execute(xmlrpc_c::paramList const& paramList
 
     c_is_public_cloud = host->is_public_cloud();
 
-    nd.get_hpool()->delete_object(host);
+    host->unlock();
 
     if (!cluster_ids.empty() && cluster_ids.count(cluster_id) == 0)
     {
@@ -1378,7 +1378,7 @@ void VirtualMachineDiskSaveas::request_execute(
     img->get_template_attribute("TARGET", target);
     img->get_template_attribute("DEV_PREFIX", dev_prefix);
 
-    ipool->delete_object(img);
+    img->unlock();
 
     switch (type)
     {
@@ -1409,7 +1409,7 @@ void VirtualMachineDiskSaveas::request_execute(
     ds_mad       = ds->get_ds_mad();
     ds_mad       = ds->get_tm_mad();
 
-    dspool->delete_object(ds);
+    ds->unlock();
 
     if (ds_check && (size > avail))
     {
@@ -2689,7 +2689,7 @@ void VirtualMachineDiskSnapshotCreate::request_execute(
 
         img->get_permissions(img_perms);
 
-        ipool->delete_object(img);
+        img->unlock();
 
         if (vm_authorization(id, 0, 0, att, 0, 0, &img_perms, auth_op) == false)
         {
@@ -2870,7 +2870,7 @@ void VirtualMachineDiskSnapshotDelete::request_execute(
 
         img->get_permissions(img_perms);
 
-        ipool->delete_object(img);
+        img->unlock();
 
         if (vm_authorization(id, 0, 0, att, 0, 0, &img_perms, auth_op) == false)
         {
@@ -3116,7 +3116,7 @@ void VirtualMachineDiskResize::request_execute(
 
             img->get_permissions(img_perms);
 
-            ipool->delete_object(img);
+            img->unlock();
         }
 
         if (vm_authorization(id, 0, 0, att, 0, 0, &img_perms, auth_op) == false)

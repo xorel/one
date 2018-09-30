@@ -58,7 +58,7 @@ MarketPlacePool::MarketPlacePool(SqlDB * db, bool is_federation_slave)
                 oneadmin->get_umask(),
                 default_tmpl);
 
-        upool->delete_object(oneadmin);
+        oneadmin->unlock();
 
         marketplace->set_permissions(1,1,1, 1,0,0, 1,0,0, error);
 

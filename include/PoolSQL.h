@@ -249,16 +249,6 @@ public:
     static void oid_filter(int     start_id,
                            int     end_id,
                            string& filter);
-
-    /**
-     *  Deletes and object
-     *    @param obj object which will be deleted
-     */
-    void delete_object(PoolObjectSQL * obj){
-
-        delete obj;
-    }
-
 protected:
 
     /**

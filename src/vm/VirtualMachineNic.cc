@@ -107,7 +107,7 @@ int VirtualMachineNic::get_uid(int _uid, string& error)
 
         uid = user->get_oid();
 
-        upool->delete_object(user);
+        user->unlock();
     }
     else
     {
@@ -144,7 +144,7 @@ void VirtualMachineNic::authorize(PoolObjectSQL::ObjectType ot, int uid,
 
             sgroup->get_permissions(perm);
 
-            sgpool->delete_object(sgroup);
+            sgroup->unlock();
 
             if ( check_lock )
             {

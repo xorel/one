@@ -436,7 +436,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
 
     if ( ds_type == Datastore::SYSTEM_DS )
     {
-        dspool->delete_object(ds);
+        ds->unlock();
 
         att.resp_msg = "New images cannot be allocated in a system datastore.";
         failure_response(ALLOCATE, att);
@@ -458,7 +458,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
 
     ds->to_xml(ds_data);
 
-    dspool->delete_object(ds);
+    ds->unlock();
 
     // --------------- Get the SIZE for the Image, (DS driver) -----------------
 
@@ -482,7 +482,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
         size_mb   = app->get_size();
         market_id = app->get_market_id();
 
-        apppool->delete_object(app);
+        app->unlock();
 
         market = marketpool->get_ro(market_id);
 
@@ -497,7 +497,7 @@ void ImageAllocate::request_execute(xmlrpc_c::paramList const& params,
 
         market->to_xml(extra_data);
 
-        marketpool->delete_object(market);
+        market->unlock();
 
         oss << size_mb;
         size_str = oss.str();
@@ -777,7 +777,7 @@ bool UserAllocate::allocate_authorization(
             ar.add_auth(AuthRequest::MANAGE, perms); // MANAGE GROUP
         }
 
-        gpool->delete_object(group);
+        group->unlock();
     }
 
     if (UserPool::authorize(ar) == -1)
@@ -1180,7 +1180,7 @@ Request::ErrorCode MarketPlaceAppAllocate::pool_allocate(
     if ( !mp->is_action_supported(MarketPlaceApp::CREATE) )
     {
         att.resp_msg = "Create disabled for market: " + mp_name;
-        mppool->delete_object(mp);
+        mp->unlock();
 
         return Request::ACTION;
     }
@@ -1188,14 +1188,14 @@ Request::ErrorCode MarketPlaceAppAllocate::pool_allocate(
     if ( mp->get_zone_id() != Nebula::instance().get_zone_id() )
     {
         att.resp_msg = "Marketplace is not in this OpenNebula zone";
-        mppool->delete_object(mp);
+        mp->unlock();
 
         return Request::ACTION;
     }
 
     mp->to_xml(mp_data);
 
-    mppool->delete_object(mp);
+    mp->unlock();
 
     // ---------------------------------------------------------------------- //
     // Allocate MarketPlaceApp request is forwarded to master for slaves      //
