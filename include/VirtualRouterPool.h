@@ -73,9 +73,22 @@ public:
      *
      *   @return a pointer to the object, 0 in case of failure
      */
-    VirtualRouter * get(int oid)
+    VirtualRouter * get(int oid) 
     {
         return static_cast<VirtualRouter *>(PoolSQL::get(oid));
+    };
+
+    /**
+     *  Gets a read only object from the pool (if needed the object is loaded from the
+     *  database).
+     *   @param oid the object unique identifier
+     *   @param lock locks the object if true
+     *
+     *   @return a pointer to the object, 0 in case of failure
+     */
+    VirtualRouter * get_ro(int oid)
+    {
+        return static_cast<VirtualRouter *>(PoolSQL::get_ro(oid));
     };
 
     /**

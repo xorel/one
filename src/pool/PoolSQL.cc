@@ -176,6 +176,8 @@ PoolObjectSQL * PoolSQL::get(int oid)
 
     objectsql->oid = oid;
 
+    objectsql->ro = false;
+
     int rc = objectsql->select(db);
 
     if ( rc != 0 )
@@ -197,6 +199,36 @@ PoolObjectSQL * PoolSQL::get(int oid)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
+PoolObjectSQL * PoolSQL::get_ro(int oid)
+{
+    if ( oid < 0 )
+    {
+        return 0;
+    }
+
+    PoolObjectSQL * objectsql;
+
+    objectsql = create();
+
+    objectsql->oid = oid;
+
+    objectsql->ro = true;
+
+    int rc = objectsql->select(db);
+
+    if ( rc != 0 )
+    {
+        delete objectsql;
+
+        return 0;
+    }
+
+    return objectsql;
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
 PoolObjectSQL * PoolSQL::get(const string& name, int ouid)
 {
 
@@ -208,6 +240,21 @@ PoolObjectSQL * PoolSQL::get(const string& name, int ouid)
     }
 
     return get(oid);
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+PoolObjectSQL * PoolSQL::get_ro(const string& name, int uid)
+{
+    int oid = PoolObjectSQL::select_oid(db, table.c_str(), name, uid);
+
+    if ( oid == -1 )
+    {
+        return 0;
+    }
+
+    return get_ro(oid);
 }
 
 /* -------------------------------------------------------------------------- */

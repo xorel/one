@@ -134,7 +134,7 @@ void RequestManagerRename::request_execute(xmlrpc_c::paramList const& paramList,
 
 void ClusterRename::batch_rename(int oid)
 {
-    Cluster * cluster = static_cast<ClusterPool *>(pool)->get(oid);
+    Cluster * cluster = static_cast<ClusterPool *>(pool)->get_ro(oid);
 
     if (cluster == 0)
     {
@@ -172,7 +172,7 @@ void ClusterRename::batch_rename(int oid)
 
 void DatastoreRename::batch_rename(int oid)
 {
-    Datastore * datastore = static_cast<DatastorePool*>(pool)->get(oid);
+    Datastore * datastore = static_cast<DatastorePool*>(pool)->get_ro(oid);
 
     if (datastore == 0)
     {
@@ -212,7 +212,7 @@ void DatastoreRename::batch_rename(int oid)
 
 void HostRename::batch_rename(int oid)
 {
-    Host * host = static_cast<HostPool*>(pool)->get(oid);
+    Host * host = static_cast<HostPool*>(pool)->get_ro(oid);
 
     if (host == 0)
     {
@@ -252,7 +252,7 @@ void HostRename::batch_rename(int oid)
 
 void MarketPlaceRename::batch_rename(int oid)
 {
-    MarketPlace * market = static_cast<MarketPlacePool*>(pool)->get(oid);
+    MarketPlace * market = static_cast<MarketPlacePool*>(pool)->get_ro(oid);
 
     if (market == 0)
     {

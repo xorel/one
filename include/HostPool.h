@@ -82,6 +82,30 @@ public:
     };
 
     /**
+     *  Function to get a read only Host from the pool, if the object is not in memory
+     *  it is loaded from the DB
+     *    @param oid Host unique id
+     *    @return a pointer to the Host, 0 if the Host could not be loaded
+     */
+    Host * get_ro(
+        int     oid)
+    {
+        Host * h = static_cast<Host *>(PoolSQL::get_ro(oid));
+
+        if ( h != 0 )
+        {
+            HostVM * hv = get_host_vm(oid);
+
+            h->tmp_lost_vms   = &(hv->tmp_lost_vms);
+            h->tmp_zombie_vms = &(hv->tmp_zombie_vms);
+
+            h->prev_rediscovered_vms = &(hv->prev_rediscovered_vms);
+        }
+
+        return h;
+    };
+
+    /**
      *  Function to get a Host from the pool, if the object is not in memory
      *  it is loaded from the DB
      *    @param hostname
@@ -92,6 +116,31 @@ public:
     {
         // The owner is set to -1, because it is not used in the key() method
         Host * h = static_cast<Host *>(PoolSQL::get(name,-1));
+
+        if ( h != 0 )
+        {
+            HostVM * hv = get_host_vm(h->oid);
+
+            h->tmp_lost_vms   = &(hv->tmp_lost_vms);
+            h->tmp_zombie_vms = &(hv->tmp_zombie_vms);
+
+            h->prev_rediscovered_vms = &(hv->prev_rediscovered_vms);
+        }
+
+        return h;
+    };
+
+    /**
+     *  Function to get a Host from the pool, if the object is not in memory
+     *  it is loaded from the DB
+     *    @param hostname
+     *    @param lock locks the Host mutex
+     *    @return a pointer to the Host, 0 if the Host could not be loaded
+     */
+    Host * get_ro(string name)
+    {
+        // The owner is set to -1, because it is not used in the key() method
+        Host * h = static_cast<Host *>(PoolSQL::get_ro(name,-1));
 
         if ( h != 0 )
         {

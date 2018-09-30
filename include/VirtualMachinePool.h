@@ -84,6 +84,18 @@ public:
     };
 
     /**
+     *  Function to get a read only VM from the pool, if the object is not
+     *  in memory it is loade from the DB
+     *    @param oid VM unique id
+     *    @return a pointer to the VM, 0 if the VM could not be loaded
+     */
+    VirtualMachine * get_ro(
+        int     oid)
+    {
+        return static_cast<VirtualMachine *>(PoolSQL::get_ro(oid));
+    };
+
+    /**
      *  Function to get a VM from the pool, string version for VM ID
      */
     VirtualMachine * get(
@@ -100,6 +112,25 @@ public:
         }
 
         return static_cast<VirtualMachine *>(PoolSQL::get(oid));
+    };
+
+    /**
+     *  Function to get a read only VM from the pool, string version for VM ID
+     */
+    VirtualMachine * get_ro(
+        const string& oid_s)
+    {
+        istringstream iss(oid_s);
+        int           oid;
+
+        iss >> oid;
+
+        if ( iss.fail() )
+        {
+            return 0;
+        }
+
+        return static_cast<VirtualMachine *>(PoolSQL::get_ro(oid));
     };
 
     /**

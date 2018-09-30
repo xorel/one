@@ -889,7 +889,7 @@ int VirtualMachinePool::calculate_showback(
         {
             int vmid = vm_it->first;
 
-            vm = get(vmid);
+            vm = get_ro(vmid);
 
             int uid = 0;
             int gid = 0;

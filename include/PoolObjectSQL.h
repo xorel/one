@@ -331,7 +331,14 @@ public:
      */
     void unlock()
     {
-        pthread_mutex_unlock(&mutex);
+        if (ro == true)
+        {
+            delete this;
+        }
+        else
+        {
+            pthread_mutex_unlock(&mutex);
+        }
     };
 
     /**
@@ -813,6 +820,11 @@ protected:
      *  Expiration time for the DB lock
      */
     time_t  lock_time;
+
+    /**
+     * Attribute for check if is a read only object
+     */
+    bool  ro;
 
 private:
     /**

@@ -153,6 +153,19 @@ public:
     };
 
     /**
+     *  Function to get a read onlycluster from the pool, if the object is not
+     *  in memory it is loaded from the DB
+     *    @param oid cluster unique id
+     *
+     *    @return a pointer to the cluster, 0 if the cluster could not be loaded
+     */
+
+    Cluster * get_ro(int oid)
+    {
+        return static_cast<Cluster *>(PoolSQL::get_ro(oid));
+    }
+
+    /**
      *  Drops the Cluster from the data base. The object mutex SHOULD be
      *  locked.
      * @param objsql a pointer to a Cluster object

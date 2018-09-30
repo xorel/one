@@ -72,6 +72,18 @@ public:
         return static_cast<MarketPlace *>(PoolSQL::get(oid));
     };
 
+    /**
+     *  Function to get a read only MarketPlace from the pool, the object is loaded if not
+     *  in memory
+     *    @param oid MarketPlace unique id
+     *    @param lock locks the MarketPlace mutex
+     *    @return a pointer to the MarketPlace, 0 if not loaded
+     */
+    MarketPlace * get_ro(int oid)
+    {
+        return static_cast<MarketPlace *>(PoolSQL::get_ro(oid));
+    };
+
     /** Update a particular MarketPlace
      *    @param  objsql points to the market
      *    @return 0 on success

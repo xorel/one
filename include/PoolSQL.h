@@ -62,11 +62,19 @@ public:
      *  Gets an object from the pool (if needed the object is loaded from the
      *  database).
      *   @param oid the object unique identifier
-     *   @param lock locks the object if true
      *
      *   @return a pointer to the object, 0 in case of failure
      */
     PoolObjectSQL * get(int oid);
+
+    /**
+     *  Gets a read only object from the pool (if needed the object is loaded from the
+     *  database).
+     *   @param oid the object unique identifier
+     *
+     *   @return a pointer to the object, 0 in case of failure
+     */
+    PoolObjectSQL * get_ro(int oid);
 
     /**
      *  Check if there is an object with the same for a given user
@@ -259,11 +267,20 @@ protected:
      *  database).
      *   @param name of the object
      *   @param uid id of owner
-     *   @param lock locks the object if true
      *
      *   @return a pointer to the object, 0 in case of failure
      */
     PoolObjectSQL * get(const string& name, int uid);
+
+    /**
+     *  Gets a read only object from the pool (if needed the object is loaded from the
+     *  database).
+     *   @param name of the object
+     *   @param uid id of owner
+     *
+     *   @return a pointer to the object, 0 in case of failure
+     */
+    PoolObjectSQL * get_ro(const string& name, int uid);
 
     /**
      *  Pointer to the database.

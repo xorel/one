@@ -189,7 +189,7 @@ VirtualNetwork * VirtualNetworkPool::get_nic_by_name(VirtualMachineNic * nic,
         return 0;
     }
 
-    VirtualNetwork * vnet = get(name, uid);
+    VirtualNetwork * vnet = get_ro(name, uid);
 
     if (vnet == 0)
     {
@@ -218,7 +218,7 @@ VirtualNetwork * VirtualNetworkPool::get_nic_by_id(const string& id_s,
 
     if( !is.fail() )
     {
-        vnet = get(id);
+        vnet = get_ro(id);
     }
 
     if (vnet == 0)
