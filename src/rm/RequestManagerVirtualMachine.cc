@@ -733,7 +733,9 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
     Nebula&             nd = Nebula::instance();
     DispatchManager *   dm = nd.get_dm();
     DatastorePool * dspool = nd.get_dspool();
+    UserPool*        upool = nd.get_upool();
 
+    User * user;
     VirtualMachine * vm;
     VirtualMachineTemplate  tmpl;
 
@@ -750,6 +752,8 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
 
     bool auth = false;
     int rc;
+    int uid, gid;
+    set<int> gids;
     int has_net_mode, nic_id;
     string net_mode;
 
@@ -803,11 +807,32 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
         return;
     }
 
-    AuthRequest ar(att.uid, att.group_ids);
+    if ((vm = get_vm(id, att)) == 0)
+    {
+        return;
+    }
+
+    uid = vm->get_uid();
+    gid = vm->get_gid();
+
+    vm->unlock();
+
+    user = upool->get(vm->get_uid());
+
+    if (user == 0)
+    {
+        return;
+    }
+
+    gids = user->get_groups();
+
+    AuthRequest ar(uid, gids);
+
+    user->unlock();
 
     ar.add_auth(AuthRequest::MANAGE, vm_perms);
 
-    VirtualMachine::set_auth_request(att.uid, ar, &tmpl, true);
+    VirtualMachine::set_auth_request(uid, ar, &tmpl, true);
 
     if (UserPool::authorize(ar) == -1)
     {
@@ -816,7 +841,7 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
         return;
     }
 
-    RequestAttributes att_quota(vm_perms.uid, vm_perms.gid, att);
+    RequestAttributes att_quota(uid, gid, att);
 
     if (!att.is_admin())
     {
