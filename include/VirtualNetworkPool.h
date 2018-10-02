@@ -333,11 +333,12 @@ private:
     VirtualNetwork * get_nic_by_name(VirtualMachineNic * nic,
                                      const string&     name,
                                      int               _uidi,
+                                     bool              ro,
                                      string&           error);
     /**
      *  Function to get a VirtualNetwork by its id, as provided by a VM template
      */
-    VirtualNetwork * get_nic_by_id(const string& id_s, string& error);
+    VirtualNetwork * get_nic_by_id(const string& id_s, bool ro, string& error);
 
     //--------------------------------------------------------------------------
     // VLAN ID management functions
