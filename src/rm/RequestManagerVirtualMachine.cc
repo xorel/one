@@ -751,6 +751,7 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
     string error_str;
 
     bool auth = false;
+    bool check_nic_auto = true;
     int rc;
     int uid, gid;
     set<int> gids;
@@ -807,10 +808,25 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
         return;
     }
 
+    // ------------------------------------------------------------------------
+    // Get information about the system DS to use (tm_mad & permissions)
+    // ------------------------------------------------------------------------
+
     if ((vm = get_vm(id, att)) == 0)
     {
         return;
     }
+
+    if (vm->hasHistory() &&
+        (vm->get_action() == History::STOP_ACTION ||
+         vm->get_action() == History::UNDEPLOY_ACTION ||
+         vm->get_action() == History::UNDEPLOY_HARD_ACTION))
+    {
+        ds_id = vm->get_ds_id();
+        check_nic_auto = false;
+    }
+
+    vm->get_permissions(vm_perms);
 
     uid = vm->get_uid();
     gid = vm->get_gid();
@@ -854,33 +870,13 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
         }
     }
 
-    if (quota_authorization(&tmpl, Quotas::NETWORK, att_quota,
+    if ( check_nic_auto && quota_authorization(&tmpl, Quotas::NETWORK, att_quota,
                 att.resp_msg) == false)
     {
         failure_response(AUTHORIZATION, att);
         return;
     }
 
-    // ------------------------------------------------------------------------
-    // Get information about the system DS to use (tm_mad & permissions)
-    // ------------------------------------------------------------------------
-
-    if ((vm = get_vm(id, att)) == 0)
-    {
-        return;
-    }
-
-    if (vm->hasHistory() &&
-        (vm->get_action() == History::STOP_ACTION ||
-         vm->get_action() == History::UNDEPLOY_ACTION ||
-         vm->get_action() == History::UNDEPLOY_HARD_ACTION))
-    {
-        ds_id = vm->get_ds_id();
-    }
-
-    vm->get_permissions(vm_perms);
-
-    vm->unlock();
 
     if (is_public_cloud) // Set ds_id to -1 and tm_mad empty(). This is used by
     {                    // by VirtualMachine::get_host_is_cloud()
@@ -992,37 +988,40 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
         return;
     }
 
-    vector<VectorAttribute *> vnics;
-    tmpl.get("NIC", vnics);
-
-    for (vector<VectorAttribute*>::iterator it = vnics.begin(); it != vnics.end(); it++)
+    if ( check_nic_auto )
     {
-        (*it)->vector_value("NIC_ID", nic_id);
+        vector<VectorAttribute *> vnics;
+        tmpl.get("NIC", vnics);
 
-        nic = vm->get_nic(nic_id);
-
-        has_net_mode = (*it)->vector_value("NETWORK_MODE", net_mode);
-        one_util::toupper(net_mode);
-
-        if ( nic == 0 || ( has_net_mode != 0 ) || ( has_net_mode == 0 && net_mode != "AUTO" ) )
+        for (vector<VectorAttribute*>::iterator it = vnics.begin(); it != vnics.end(); it++)
         {
-            att.resp_msg = "NIC_ID not found or not AUTO";
-            failure_response(NO_EXISTS, att);
+            (*it)->vector_value("NIC_ID", nic_id);
+
+            nic = vm->get_nic(nic_id);
+
+            has_net_mode = (*it)->vector_value("NETWORK_MODE", net_mode);
+            one_util::toupper(net_mode);
+
+            if ( nic == 0 || ( has_net_mode != 0 ) || ( has_net_mode == 0 && net_mode != "AUTO" ) )
+            {
+                att.resp_msg = "NIC_ID not found or not AUTO";
+                failure_response(NO_EXISTS, att);
+
+                vm->unlock();
+                return;
+            }
+
+            nic->replace("NETWORK", (*it)->vector_value("NETWORK"));
+        }
+
+        if ( vm->get_network_leases(error_str, true) != 0 || vm->parse_context(error_str, true) != 0 )
+        {
+            att.resp_msg = error_str;
+            failure_response(ACTION, att);
 
             vm->unlock();
             return;
         }
-
-        nic->replace("NETWORK", (*it)->vector_value("NETWORK"));
-    }
-
-    if ( vm->get_network_leases(error_str, true) != 0 || vm->parse_context(error_str, true) != 0 )
-    {
-        att.resp_msg = error_str;
-        failure_response(ACTION, att);
-
-        vm->unlock();
-        return;
     }
 
     vmpool->update(vm);
