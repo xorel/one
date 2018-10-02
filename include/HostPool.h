@@ -81,6 +81,20 @@ public:
         return h;
     };
 
+    void update_prev_rediscovered_vms(int hoid,
+        const set<int>& prev_rediscovered_vms)
+    {
+
+        if (hoid < 0)
+        {
+            return;
+        }
+
+        HostVM * hv = get_host_vm(hoid);
+
+        hv->prev_rediscovered_vms = prev_rediscovered_vms;
+    }
+
     /**
      *  Function to get a read only Host from the pool, if the object is not in memory
      *  it is loaded from the DB

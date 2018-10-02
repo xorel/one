@@ -288,17 +288,8 @@ void MonitorThread::do_message()
 
         // The rediscovered set is not stored in the DB, the update method
         // is not needed
-        
 
-        //TODO ADD POOL METHOD TO NOT LOAD THE HOST AGAIN
-        host = hpool->get(host_id);
-
-        if ( host != 0 )
-        {
-            host->set_prev_rediscovered_vms(rediscovered_vms);
-
-            host->unlock();
-        }
+        hpool->update_prev_rediscovered_vms(host_id, rediscovered_vms);
     }
 };
 
