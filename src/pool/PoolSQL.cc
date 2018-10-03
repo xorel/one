@@ -123,8 +123,6 @@ int PoolSQL::allocate(PoolObjectSQL *objsql, string& error_str)
         lastOID = -1;
     }
 
-    objsql->lock();
-
     objsql->oid = ++lastOID;
 
     if ( _set_lastOID(lastOID, db, table) == -1 )
@@ -168,30 +166,24 @@ PoolObjectSQL * PoolSQL::get(int oid)
         return 0;
     }
 
-    PoolObjectSQL * objectsql;
+    pthread_mutex_t * object_lock = cache.lock_line(oid);
 
-    cache.lock_line(oid);
-
-    objectsql = create();
+    PoolObjectSQL * objectsql = create();
 
     objectsql->oid = oid;
 
-    objectsql->ro = false;
+    objectsql->ro  = false;
+
+    objectsql->mutex = object_lock;
 
     int rc = objectsql->select(db);
 
     if ( rc != 0 )
     {
-        delete objectsql;
-
-        cache.set_line(oid, 0);
+        objectsql->unlock(); //Free object and unlock cache line mutex
 
         return 0;
     }
-
-    objectsql->lock();
-
-    cache.set_line(oid, objectsql);
 
     return objectsql;
 }
@@ -206,9 +198,7 @@ PoolObjectSQL * PoolSQL::get_ro(int oid)
         return 0;
     }
 
-    PoolObjectSQL * objectsql;
-
-    objectsql = create();
+    PoolObjectSQL * objectsql = create();
 
     objectsql->oid = oid;
 
@@ -218,7 +208,7 @@ PoolObjectSQL * PoolSQL::get_ro(int oid)
 
     if ( rc != 0 )
     {
-        delete objectsql;
+        objectsql->unlock(); //Free object;
 
         return 0;
     }

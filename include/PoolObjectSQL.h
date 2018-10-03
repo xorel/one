@@ -177,18 +177,14 @@ public:
              lock_owner(-1),
              lock_req_id(-1),
              lock_time(0),
+             mutex(0),
              table(_table)
     {
-        pthread_mutex_init(&mutex,0);
     };
 
     virtual ~PoolObjectSQL()
     {
         delete obj_template;
-
-        pthread_mutex_unlock(&mutex);
-
-        pthread_mutex_destroy(&mutex);
     };
 
     /* --------------------------------------------------------------------- */
@@ -317,37 +313,18 @@ public:
                                 string& error_str);
 
     /* --------------------------------------------------------------------- */
-
     /**
-     *  Function to lock the object
-     */
-    void lock()
-    {
-        pthread_mutex_lock(&mutex);
-    };
-
-    /**
-     *  Function to unlock the object
+     *  Function to unlock the object. It also frees associated resources. Object
+     *  cannot be access after unlocking it
      */
     void unlock()
     {
-        if (ro == true)
+        if (!ro && mutex != 0)
         {
-            delete this;
+            pthread_mutex_unlock(mutex);
         }
-        else
-        {
-            pthread_mutex_unlock(&mutex);
-        }
-    };
 
-    /**
-     *  Try to lock the object
-     *    @return 0 on success or error_code
-     */
-    int trylock()
-    {
-        return pthread_mutex_trylock(&mutex);
+        delete this;
     };
 
     /**
@@ -846,7 +823,7 @@ private:
      * The mutex for the PoolObject. This implementation assumes that the mutex
      * IS LOCKED when the class destructor is called.
      */
-    pthread_mutex_t mutex;
+    pthread_mutex_t * mutex;
 
     /**
      *  Pointer to the SQL table for the PoolObjectSQL
