@@ -755,7 +755,7 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
     int rc;
     int uid, gid;
     set<int> gids;
-    int has_net_mode, nic_id;
+    int nic_id;
     string net_mode;
 
     VirtualMachinePool * vmpool = static_cast<VirtualMachinePool *>(pool);
@@ -995,14 +995,16 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
 
         for (vector<VectorAttribute*>::iterator it = vnics.begin(); it != vnics.end(); it++)
         {
+            net_mode = "";
+
             (*it)->vector_value("NIC_ID", nic_id);
 
             nic = vm->get_nic(nic_id);
 
-            has_net_mode = (*it)->vector_value("NETWORK_MODE", net_mode);
+            net_mode = (*it)->vector_value("NETWORK_MODE");
             one_util::toupper(net_mode);
 
-            if ( nic == 0 || ( has_net_mode != 0 ) || ( has_net_mode == 0 && net_mode != "AUTO" ) )
+            if ( nic == 0 || ( net_mode != "AUTO" ) )
             {
                 att.resp_msg = "NIC_ID not found or not AUTO";
                 failure_response(NO_EXISTS, att);

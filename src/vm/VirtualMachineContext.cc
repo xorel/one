@@ -285,7 +285,6 @@ int VirtualMachine::generate_network_context(VectorAttribute* context,
 {
     bool net_context;
     string net_mode = "";
-    int has_net_mode;
     bool parse_vnets = false; //All nets are auto
 
     context->vector_value("NETWORK", net_context);
@@ -312,13 +311,12 @@ int VirtualMachine::generate_network_context(VectorAttribute* context,
 
     for(int i=0; i<num_vatts; i++)
     {
-        has_net_mode = vatts[i]->vector_value("NETWORK_MODE", net_mode); // !0 = true
+        net_mode = vatts[i]->vector_value("NETWORK_MODE"); // !0 = true
         one_util::toupper(net_mode);
 
-        if ( ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0) ||
-            ( only_auto && ( has_net_mode == 0 && net_mode == "AUTO" ) ) )
+        if ( ( net_mode != "AUTO" ) || ( only_auto && ( net_mode == "AUTO" ) ) )
         {
-            if ( only_auto && ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0) )
+            if ( only_auto && net_mode != "AUTO" )
             {
                 continue;
             }

@@ -130,13 +130,12 @@ void VirtualMachineNic::authorize(PoolObjectSQL::ObjectType ot, int uid,
 
     set<int> sgroups;
 
-    int has_net_mode;
     string net_mode = "";
 
-    has_net_mode = this->vector_value("NETWORK_MODE", net_mode);
+    net_mode = this->vector_value("NETWORK_MODE");
     one_util::toupper(net_mode);
 
-    if ( has_net_mode && net_mode == "AUTO")
+    if ( net_mode == "AUTO" )
     {
         return;
     }
@@ -198,7 +197,6 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
     int nic_id, anic_id;
     int has_nic_id;
     string net_mode = "";
-    int has_net_mode;
 
     VirtualMachineNic * nic;
 
@@ -215,7 +213,7 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
             nic_id = anic_id;
         }
 
-        has_net_mode = vnic->vector_value("NETWORK_MODE", net_mode); // !0 = true
+        net_mode = vnic->vector_value("NETWORK_MODE"); // !0 = true
         one_util::toupper(net_mode);
 
         if ( only_auto )
@@ -227,8 +225,7 @@ int VirtualMachineNics::get_network_leases(int vm_id, int uid,
             nic = new VirtualMachineNic(vnic, nic_id);
         }
 
-        if ( ( ( ( has_net_mode == 0 && net_mode != "AUTO" ) || has_net_mode != 0) && !only_auto ) ||
-            ( only_auto && ( has_net_mode == 0 && net_mode == "AUTO" ) ) )
+        if ( ( net_mode != "AUTO"  && !only_auto ) || ( only_auto && net_mode == "AUTO" ) )
         {
 
             if ( nic_default != 0 )
