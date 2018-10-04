@@ -1596,6 +1596,7 @@ int VirtualMachine::insert_replace(SqlDB *db, bool replace, string& error_str)
 
     db->free_str(sql_name);
     db->free_str(sql_xml);
+    db->free_str(sql_short_xml);
 
     rc = db->exec_wr(oss);
 
@@ -1604,6 +1605,7 @@ int VirtualMachine::insert_replace(SqlDB *db, bool replace, string& error_str)
 error_xml:
     db->free_str(sql_name);
     db->free_str(sql_xml);
+    db->free_str(sql_short_xml);
 
     error_str = "Error transforming the VM to XML.";
 
@@ -2082,22 +2084,9 @@ string& VirtualMachine::to_xml_extended(string& xml, int n_history) const
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-string& VirtualMachine::to_xml_short(string& xml) const
+string& VirtualMachine::to_xml_short(string& xml)
 {
-    string template_xml;
-    string user_template_xml;
-    string monitoring_xml;
-    string history_xml;
-    string perm_xml;
-    string snap_xml;
-    string lock_str;
-    string cpu;
-    string ds, ds_id, disk_id, img, img_id, size, target;
-    string listen, passwd, port, r_pass, type;
-    string ip, mac, net, net_id, nic_id, sg;
-    string mem;
-    string vcpu;
-
+    string disks_xml, monitoring_xml, user_template_xml, history_xml, nics_xml;
     ostringstream   oss;
 
     oss << "<VM>"
@@ -2110,73 +2099,25 @@ string& VirtualMachine::to_xml_short(string& xml) const
         << "<LAST_POLL>" << last_poll << "</LAST_POLL>"
         << "<STATE>"     << state     << "</STATE>"
         << "<LCM_STATE>" << lcm_state << "</LCM_STATE>"
-        << "<PREV_STATE>"     << prev_state     << "</PREV_STATE>"
-        << "<PREV_LCM_STATE>" << prev_lcm_state << "</PREV_LCM_STATE>"
         << "<RESCHED>"   << resched   << "</RESCHED>"
         << "<STIME>"     << stime     << "</STIME>"
         << "<ETIME>"     << etime     << "</ETIME>"
         << "<DEPLOY_ID>" << deploy_id << "</DEPLOY_ID>";
 
-    obj_template->get("CPU", cpu);
-
-    VectorAttribute disk = obj_template->get("DISK");
-    disk.vector_value("DISK_ID", disk_id);
-    disk.vector_value("DATASTORE", ds);
-    disk.vector_value("DATASTORE_ID", ds_id);
-    disk.vector_value("IMAGE", img);
-    disk.vector_value("IMAGE_ID", img_id);
-    disk.vector_value("SIZE", size);
-
-    VectorAttribute graph = obj_template->get("GRAPHICS");
-    graph.vector_value("LISTEN", listen);
-    graph.vector_value("PASSWD", passwd);
-    graph.vector_value("PORT", port);
-    graph.vector_value("RANDOM_PASSWD", r_pass);
-    graph.vector_value("TYPE", type);
-
-    obj_template->get("MEMORY", mem);
-
-    VectorAttribute nic = obj_template->get("NIC");
-    nic.vector_value("IP", ip);
-    nic.vector_value("MAC", mac);
-    nic.vector_value("NETWORK", net);
-    nic.vector_value("NETWORK_ID", net_id);
-    nic.vector_value("NIC_ID", nic_id);
-    nic.vector_value("SECURITY_GROUPS", sg);
-
-    obj_template->get("VCPU", vcpu);
-
-
     oss << "<TEMPLATE>"
-        << "<CPU>"             << one_util::escape_xml(cpu)     << "</CPU>"
-        << "<DISK>"
-        << "<DATASTORE>"       << one_util::escape_xml(ds)      << "</DATASTORE>"
-        << "<DATASTORE_ID>"    << one_util::escape_xml(ds_id)   << "</DATASTORE_ID>"
-        << "<DISK_ID>"         << one_util::escape_xml(disk_id) << "</DISK_ID>"
-        << "<IMAGE>"           << one_util::escape_xml(img)     << "</IMAGE>"
-        << "<IMAGE_ID>"        << one_util::escape_xml(img_id)  << "</IMAGE_ID>"
-        << "<SIZE>"            << one_util::escape_xml(size)    << "</SIZE>"
-        << "<TARGET>"          << one_util::escape_xml(target)  << "</TARGET>"
-        << "</DISK>"
-        << "<GRAPHICS>"
-        << "<LISTEN>"          << one_util::escape_xml(listen)  << "</LISTEN>"
-        << "<PASSWD>"          << one_util::escape_xml(passwd)  << "</PASSWD>"
-        << "<PORT>"            << one_util::escape_xml(port)    << "</PORT>"
-        << "<RANDOM_PASSWD>"   << one_util::escape_xml(r_pass)  << "</RANDOM_PASSWD>"
-        << "<TYPE>"            << one_util::escape_xml(type)    << "</TYPE>"
-        << "</GRAPHICS>"
-        << "<MEMORY>"          << one_util::escape_xml(mem)     << "</MEMORY>"
-        << "<NIC>"
-        << "<IP>"              << one_util::escape_xml(ip)      << "</IP>"
-        << "<MAC>"             << one_util::escape_xml(mac)     << "</MAC>"
-        << "<NETWORK>"         << one_util::escape_xml(net)     << "</NETWORK>"
-        << "<NETWORK_ID>"      << one_util::escape_xml(net_id)  << "</NETWORK_ID>"
-        << "<NIC_ID>"          << one_util::escape_xml(nic_id)  << "</NIC_ID>"
-        << "<SECURITY_GROUPS>" << one_util::escape_xml(sg)      << "</SECURITY_GROUPS>"
-        << "</NIC>"
-        << "<VCPU>"            << one_util::escape_xml(vcpu)     << "</VCPU>"
-        << "</TEMPLATE>"
+        << "<CPU>"       << cpu       << "</CPU>"
+        << "<MEMORY>"    << memory    << "</MEMORY>"
+        << disks.to_xml_short(disks_xml)
+        << nics.to_xml_short(nics_xml);
 
+    VectorAttribute * graph = obj_template->get("GRAPHICS");
+
+    if ( graph != 0 )
+    {
+        graph->to_xml(oss);
+    }
+
+    oss << "</TEMPLATE>"
         << monitoring.to_xml_short(monitoring_xml)
         << user_obj_template->to_xml_short(user_template_xml);
 

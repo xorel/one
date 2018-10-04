@@ -160,6 +160,41 @@ void VirtualMachineNic::authorize(PoolObjectSQL::ObjectType ot, int uid,
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
+
+void VirtualMachineNic::to_xml_short(std::ostringstream& oss) const
+{
+    std::string ip      = vector_value("IP");
+    std::string ip6     = vector_value("IP6");
+    std::string ip6_ula = vector_value("IP6_ULA");
+
+    oss << "<NIC>";
+
+    if (!ip.empty())
+    {
+        oss << "<IP>" << ip << "</IP>";
+    }
+
+    if (!ip6.empty())
+    {
+        oss << "<IP6>" << ip6 << "</IP6>";
+    }
+
+    if (!ip6_ula.empty())
+    {
+        oss << "<IP6_ULA>" << ip6 << "</IP6_ULA>";
+    }
+
+    oss << "<MAC>"        << vector_value("MAC")        << "</MAC>"
+        << "<NETWORK>"    << vector_value("NETWORK")    << "</NETWORK>"
+        << "<NETWORK_ID>" << vector_value("NETWORK_ID") << "</NETWORK_ID>"
+        << "<NIC_ID>"     << vector_value("NIC_ID")     << "</NIC_ID>"
+        << "<SECURITY_GROUPS>" << vector_value("SECURITY_GROUPS") 
+            << "</SECURITY_GROUPS>"
+        << "</NIC>";
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 /* VIRTUALMACHINENICS                                                         */
 /* -------------------------------------------------------------------------- */
@@ -338,3 +373,21 @@ int VirtualMachineNics::set_up_attach_nic(int vmid, int uid, int cluster_id,
 
     return 0;
 }
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+std::string& VirtualMachineNics::to_xml_short(std::string& xml)
+{
+    std::ostringstream oss;
+
+    for ( nic_iterator nic = begin() ; nic != end() ; ++nic )
+    {
+        (*nic)->to_xml_short(oss);
+    }
+
+    xml = oss.str();
+
+    return xml;
+}
+

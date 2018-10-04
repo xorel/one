@@ -560,6 +560,21 @@ void VirtualMachineDisk::set_types(const string& ds_name)
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
+
+void VirtualMachineDisk::to_xml_short(std::ostringstream& oss) const
+{
+    oss << "<DISK>"
+        << "<DISK_ID>"     << vector_value("DISK_ID")     << "</DISK_ID>"
+        << "<DATASTORE>"   << vector_value("DATASTORE")   << "</DATASTORE>"
+        << "<DATASTORE_ID>"<< vector_value("DATASTORE_ID")<< "</DATASTORE_ID>"
+        << "<IMAGE>"       << vector_value("IMAGE")       << "</IMAGE>"
+        << "<IMAGE_ID>"    << vector_value("IMAGE_ID")    << "</IMAGE_ID>"
+        << "<SIZE>"        << vector_value("SIZE")        << "</SIZE>"
+        << "</DISK>";
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
@@ -1560,4 +1575,18 @@ int VirtualMachineDisks::get_saveas_info(int& disk_id, string& source,
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
+
+std::string& VirtualMachineDisks::to_xml_short(std::string& xml)
+{
+    std::ostringstream oss;
+
+    for ( disk_iterator disk = begin() ; disk != end() ; ++disk )
+    {
+        (*disk)->to_xml_short(oss);
+    }
+
+    xml = oss.str();
+
+    return xml;
+}
 

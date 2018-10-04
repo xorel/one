@@ -880,7 +880,7 @@ public:
      *  @param xml the resulting XML string
      *  @return a reference to the generated string
      */
-    string& to_xml_short(string& xml) const;
+    string& to_xml_short(string& xml);
 
     /**
      * Function to print the VirtualMachine object into a string in
