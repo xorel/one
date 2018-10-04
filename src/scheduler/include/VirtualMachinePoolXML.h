@@ -61,7 +61,7 @@ public:
      *    @param resched the machine is going to be rescheduled
      *    @param extra template with result nics
      */
-    int dispatch(int vid, int hid, int dsid, bool resched, string extra_template) const;
+    int dispatch(int vid, int hid, int dsid, bool resched, const string& extra_template) const;
 
     /**
      *  Update the VM template

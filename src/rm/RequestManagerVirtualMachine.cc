@@ -1013,7 +1013,7 @@ void VirtualMachineDeploy::request_execute(xmlrpc_c::paramList const& paramList,
                 return;
             }
 
-            nic->replace("NETWORK", (*it)->vector_value("NETWORK"));
+            nic->replace("NETWORK_ID", (*it)->vector_value("NETWORK_ID"));
         }
 
         if ( vm->get_network_leases(error_str, true) != 0 || vm->parse_context(error_str, true) != 0 )

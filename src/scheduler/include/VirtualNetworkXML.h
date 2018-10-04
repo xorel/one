@@ -38,21 +38,20 @@ public:
 
     /**
      *  Tests whether a new NIC can be attached to a vnet
-     *    @param num_leases num leases needs by VM
      *    @param error error message
      *    @return true if the VNET can host the VM
      */
-    bool test_leases(int num_leases, string & error) const;
+    bool test_leases(string & error) const;
 
     /**
      *  Tests whether a new NIC can be attached to a vnet
      *    @param num_leases num leases needs by VM
      *    @return true if the VNET can host the VM
      */
-    bool test_leases(int num_leases) const
+    bool test_leases() const
     {
         string tmp_st;
-        return test_leases(num_leases, tmp_st);
+        return test_leases(tmp_st);
     }
 
     /**

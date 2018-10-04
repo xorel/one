@@ -104,8 +104,8 @@ void VirtualMachineXML::init_attributes()
     vector<string> nics_ids;
     vector<string> nics_requirement;
 
-    xpaths(nics_ids,"/VM/TEMPLATE/NIC[NETWORK_MODE='auto']/NIC_ID");
-    xpaths(nics_requirement,"/VM/TEMPLATE/NIC[NETWORK_MODE='auto']/REQUIREMENTS");
+    xpaths(nics_ids,"/VM/TEMPLATE/NIC[NETWORK_MODE=\"auto\"]/NIC_ID");
+    xpaths(nics_requirement,"/VM/TEMPLATE/NIC[NETWORK_MODE=\"auto\"]/REQUIREMENTS");
 
     int nic_id;
     string requirements;
@@ -226,17 +226,24 @@ ostream& operator<<(ostream& os, VirtualMachineXML& vm)
 
     os << endl;
 
-    os << "\tPRI\tID - NETWORKS"<< endl
-       << "\t------------------------"  << endl;
+    set<int> nics_ids = vm.get_nics_ids();
 
-    const vector<Resource *> net_resources = vm.match_networks.get_resources();
-
-    for (i = net_resources.rbegin(); i != net_resources.rend() ; i++)
+    for (set<int>::iterator it = nics_ids.begin(); it != nics_ids.end(); it++)
     {
-        os << "\t" << (*i)->priority << "\t" << (*i)->oid << endl;
-    }
+        os << "\tNIC_ID: "<< *it << endl
+        << "\t-----------------------------------"  << endl;
+        os << "\tPRI\tID - NETWORKS"<< endl
+        << "\t------------------------"  << endl;
 
-    os << endl;
+        const vector<Resource *> net_resources = vm.match_networks[*it].get_resources();
+
+        for (i = net_resources.rbegin(); i != net_resources.rend() ; i++)
+        {
+            os << "\t" << (*i)->priority << "\t" << (*i)->oid << endl;
+        }
+
+        os << endl;
+    }
 
     return os;
 };

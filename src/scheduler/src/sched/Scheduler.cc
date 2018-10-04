@@ -747,7 +747,7 @@ static bool match_system_ds(AclXML * acls, UserPoolXML * upool,
  *  @return true for a positive match
  */
 static bool match_network(AclXML * acls, UserPoolXML * upool,
-    VirtualMachineXML* vm, int num_leases, set<int> nics_ids, VirtualNetworkXML * net, int& n_auth,
+    VirtualMachineXML* vm, int nic_id, VirtualNetworkXML * net, int& n_auth,
     int& n_error, int& n_fits, int &n_matched, string &error)
 {
     // -------------------------------------------------------------------------
@@ -780,7 +780,7 @@ static bool match_network(AclXML * acls, UserPoolXML * upool,
 
     n_auth++;
 
-    if ( !net->test_leases(num_leases, error) )
+    if ( !net->test_leases(error) )
     {
         return false;
     }
@@ -794,36 +794,31 @@ static bool match_network(AclXML * acls, UserPoolXML * upool,
     bool    a_matched;
     bool    matched   = true;
 
-    for(set<int>::iterator it = nics_ids.begin(); it != nics_ids.end(); it++)
+    if (!vm->get_nic_requirements(nic_id).empty())
     {
-        if (!vm->get_nic_requirements(*it).empty())
+        char * estr;
+        if ( net->eval_bool(vm->get_nic_requirements(nic_id), a_matched, &estr) != 0 )
         {
-            char * estr;
-            if ( net->eval_bool(vm->get_nic_requirements(*it), a_matched, &estr) != 0 )
-            {
-                ostringstream oss;
+            ostringstream oss;
 
-                n_error++;
+            n_error++;
 
-                oss << "Error in REQUIREMENTS - NIC_ID(" << *it <<"): '"
-                    << vm->get_nic_requirements(*it) << "', error: " << estr;
+            oss << "Error in REQUIREMENTS - NIC_ID(" << nic_id <<"): '"
+                << vm->get_nic_requirements(nic_id) << "', error: " << estr;
 
-                vm->log(oss.str());
+            vm->log(oss.str());
 
-                error = oss.str();
+            error = oss.str();
 
-                free(estr);
+            free(estr);
 
-                return false;
-            }
-            matched &= a_matched;
+            return false;
         }
-    }
-
-    if (matched == false)
-    {
-        error = "It does not fulfill SCHED_NIC_REQUIREMENTS.";
-        return false;
+        if (matched == false)
+        {
+            error = "It does not fulfill NIC REQUIREMENTS.";
+            return false;
+        }
     }
 
     n_matched++;
@@ -1146,31 +1141,37 @@ void Scheduler::match_schedule()
         n_error   = 0;
         n_fits    = 0;
 
-        for (obj_it=nets.begin(); obj_it != nets.end(); obj_it++)
+        set<int> nics_ids = vm->get_nics_ids();
+
+        for (set<int>::iterator it = nics_ids.begin(); it != nics_ids.end(); it++)
         {
-            net = static_cast<VirtualNetworkXML *>(obj_it->second);
-
-            if (match_network(acls, upool, vm, vm->get_nics_ids().size(), vm->get_nics_ids(), net, n_auth, n_error,
-                        n_fits, n_matched, m_error))
+            int nic_id = *it;
+            for (obj_it=nets.begin(); obj_it != nets.end(); obj_it++)
             {
-                vm->add_match_network(net->get_oid());
+                net = static_cast<VirtualNetworkXML *>(obj_it->second);
 
-                n_resources++;
-            }
-            else
-            {
-                if (n_error > 0)
+                if (match_network(acls, upool, vm, nic_id, net, n_auth, n_error,
+                            n_fits, n_matched, m_error))
                 {
-                    log_match(vm->get_oid(), "Cannot schedule VM. " + m_error);
-                    break;
+                    vm->add_match_network(net->get_oid(), nic_id);
+
+                    n_resources++;
                 }
-                else if (NebulaLog::log_level() >= Log::DDEBUG)
+                else
                 {
-                    ostringstream oss;
-                    oss << "Network " << net->get_oid() << " discarded for VM "
-                        << vm->get_oid() << ". " << m_error;
+                    if (n_error > 0)
+                    {
+                        log_match(vm->get_oid(), "Cannot schedule VM. " + m_error);
+                        break;
+                    }
+                    else if (NebulaLog::log_level() >= Log::DDEBUG)
+                    {
+                        ostringstream oss;
+                        oss << "Network " << net->get_oid() << " discarted for VM "
+                            << vm->get_oid() << " and NIC " << nic_id << ". " << m_error;
 
-                    NebulaLog::log("SCHED", Log::DDEBUG, oss);
+                        NebulaLog::log("SCHED", Log::DDEBUG, oss);
+                    }
                 }
             }
         }
@@ -1469,58 +1470,56 @@ void Scheduler::dispatch()
              //------------------------------------------------------------------
             // Get the highest ranked network
             //------------------------------------------------------------------
-            const vector<Resource *> net_resources = vm->get_match_networks();
+            extra.clear();
 
-            netid = -1;
+            set<int> nics_ids = vm->get_nics_ids();
 
-            extra.str("");
-
-            for (n = net_resources.rbegin() ; n != net_resources.rend(); n++)
+            for(set<int>::iterator it = nics_ids.begin(); it != nics_ids.end(); it++)
             {
-                net = vnetpool->get((*n)->oid);
+                int nic_id = *it;
 
-                if ( net == 0 )
+                const vector<Resource *> net_resources = vm->get_match_networks(nic_id);
+
+                netid = -1;
+
+                for (n = net_resources.rbegin() ; n != net_resources.rend(); n++)
                 {
-                    continue;
-                }
+                    net = vnetpool->get((*n)->oid);
 
-                //--------------------------------------------------------------
-                // Test cluster membership for datastore and selected host
-                //--------------------------------------------------------------
-                if (! net->is_in_cluster(cid))
-                {
-                    continue;
-                }
-
-                //--------------------------------------------------------------
-                // Test network leases
-                //--------------------------------------------------------------
-                if ( !net->test_leases(vm->get_nics_ids().size()) )
-                {
-                    continue;
-                }
-                //--------------------------------------------------------------
-                //Select this DS to dispatch VM
-                //--------------------------------------------------------------
-                netid = (*n)->oid;
-
-                break;
-            }
-
-            if ( netid == -1 && vm->get_nics_ids().size() > 0 )
-            {
-                continue;
-            }
-            else
-            {
-                for(set<int>::iterator it = vm->get_nics_ids().begin(); it != vm->get_nics_ids().end(); it++)
-                {
-                    if ( extra.str() != "" )
+                    if ( net == 0 )
                     {
-                        extra << "," << endl;
+                        continue;
                     }
-                    extra << "NIC=[NIC_ID="<<*it<<", NETWORK_MODE='auto', NETWORK_ID="<<netid<<"]";
+
+                    //--------------------------------------------------------------
+                    // Test cluster membership for datastore and selected host
+                    //--------------------------------------------------------------
+                    if (! net->is_in_cluster(cid))
+                    {
+                        continue;
+                    }
+
+                    //--------------------------------------------------------------
+                    // Test network leases
+                    //--------------------------------------------------------------
+                    if ( !net->test_leases() )
+                    {
+                        continue;
+                    }
+                    //--------------------------------------------------------------
+                    //Select this DS to dispatch VM
+                    //--------------------------------------------------------------
+                    netid = (*n)->oid;
+
+                    break;
                 }
+
+                if ( netid == -1 )
+                {
+                    continue;
+                }
+
+                extra << "NIC=[NIC_ID=\"" << nic_id << "\", NETWORK_MODE=\"auto\" , NETWORK_ID=\"" << netid << "\"]";
             }
 
 

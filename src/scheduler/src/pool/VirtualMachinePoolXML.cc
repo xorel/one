@@ -148,7 +148,7 @@ int VirtualMachinePoolXML::load_info(xmlrpc_c::value &result)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-int VirtualMachinePoolXML::dispatch(int vid, int hid, int dsid, bool resched, string extra_template) const
+int VirtualMachinePoolXML::dispatch(int vid, int hid, int dsid, bool resched,const string& extra_template) const
 {
     xmlrpc_c::value deploy_result;
 
@@ -180,7 +180,7 @@ int VirtualMachinePoolXML::dispatch(int vid, int hid, int dsid, bool resched, st
                          hid,             // argument 2 (HOST)
                          false,           // argument 3 (ENFORCE)
                          dsid,            // argument 5 (SYSTEM SD)
-                         extra_template); // argument 6 (EXTRA TEMPLATE)
+                         extra_template.c_str()); // argument 6 (EXTRA TEMPLATE)
         }
     }
     catch (exception const& e)

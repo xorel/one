@@ -92,9 +92,9 @@ void VirtualNetworkXML::init_attributes()
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-bool VirtualNetworkXML::test_leases(int num_leases, string & error) const
+bool VirtualNetworkXML::test_leases(string & error) const
 {
-    bool fits = (num_leases <= free_leases) || (num_leases == 0);
+    bool fits = (free_leases > 0);
 
     if (!fits)
     {
@@ -103,7 +103,7 @@ bool VirtualNetworkXML::test_leases(int num_leases, string & error) const
             ostringstream oss;
 
             oss << "Not enough free leases. "
-                << "Requested: " << num_leases << " LEASES, "
+                << "Requested: 1 LEASES, "
                 << "Available: " << free_leases << " LEASES";
 
             error = oss.str();
@@ -117,8 +117,6 @@ bool VirtualNetworkXML::test_leases(int num_leases, string & error) const
     return fits;
 }
 
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
 
 void VirtualNetworkXML::get_permissions(PoolObjectAuth& auth)
 {

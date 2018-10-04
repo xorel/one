@@ -213,9 +213,9 @@ public:
      *  Adds a matching network
      *    @param oid of the network
      */
-    void add_match_network(int oid)
+    void add_match_network(int oid, int nic_id)
     {
-        match_networks.add_resource(oid);
+        match_networks[nic_id].add_resource(oid);
     }
 
     /**
@@ -237,9 +237,9 @@ public:
     /**
      *  Returns a vector of matched datastores
      */
-    const vector<Resource *> get_match_networks()
+    const vector<Resource *> get_match_networks(int nic_id)
     {
-        return match_networks.get_resources();
+        return match_networks[nic_id].get_resources();
     }
 
     /**
@@ -263,7 +263,10 @@ public:
      */
     void sort_match_networks()
     {
-        match_networks.sort_resources();
+        for (map<int, ResourceMatch>::iterator it = match_networks.begin(); it != match_networks.end(); it++ )
+        {
+            it->second.sort_resources();
+        }
     }
 
     /**
@@ -287,7 +290,10 @@ public:
      */
     void clear_match_networks()
     {
-        match_networks.clear();
+        for (map<int, ResourceMatch>::iterator it = match_networks.begin(); it != match_networks.end(); it++ )
+        {
+            it->second.clear();
+        }
     }
 
     /**
@@ -426,7 +432,7 @@ protected:
 
     ResourceMatch match_datastores;
 
-    ResourceMatch match_networks;
+    map<int, ResourceMatch> match_networks;
 
     bool only_public_cloud;
 
