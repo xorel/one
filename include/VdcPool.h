@@ -98,7 +98,7 @@ public:
     int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
-        return PoolSQL::dump(oss, "VDC_POOL", Vdc::table, where, limit, desc);
+        return PoolSQL::dump(oss, "VDC_POOL", "body", Vdc::table, where, limit, desc);
     };
 
     /**

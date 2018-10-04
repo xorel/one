@@ -114,7 +114,7 @@ public:
     int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
-        return PoolSQL::dump(oss, "SECURITY_GROUP_POOL", SecurityGroup::table,
+        return PoolSQL::dump(oss, "SECURITY_GROUP_POOL", "body", SecurityGroup::table,
                 where, limit, desc);
     };
 

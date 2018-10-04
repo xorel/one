@@ -250,12 +250,12 @@ PoolObjectSQL * PoolSQL::get_ro(const string& name, int uid)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-int PoolSQL::dump(string& oss, const string& elem_name, const char* table,
+int PoolSQL::dump(string& oss, const string& elem_name, const string& column, const char* table,
     const string& where, const string& limit, bool desc)
 {
     ostringstream   cmd;
 
-    cmd << "SELECT body FROM " << table;
+    cmd << "SELECT " << column << " FROM " << table;
 
     if ( !where.empty() )
     {

@@ -165,7 +165,7 @@ public:
     int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
-        return PoolSQL::dump(oss, "IMAGE_POOL", Image::table, where, limit, 
+        return PoolSQL::dump(oss, "IMAGE_POOL", "body", Image::table, where, limit, 
             desc);
     }
 

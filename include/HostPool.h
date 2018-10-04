@@ -291,7 +291,7 @@ public:
     int dump(string& oss, const string& where, const string& limit,
         bool desc)
     {
-        return PoolSQL::dump(oss, "HOST_POOL", Host::table, where, limit, desc);
+        return PoolSQL::dump(oss, "HOST_POOL", "body", Host::table, where, limit, desc);
     };
 
     /**

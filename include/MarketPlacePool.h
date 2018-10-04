@@ -121,7 +121,7 @@ public:
     int dump(std::string& oss, const std::string& where,
 		const std::string& limit, bool desc)
     {
-        return PoolSQL::dump(oss, "MARKETPLACE_POOL", MarketPlace::table, where,
+        return PoolSQL::dump(oss, "MARKETPLACE_POOL", "body", MarketPlace::table, where,
                              limit, desc);
     };
 

@@ -99,7 +99,7 @@ public:
     int dump(string& oss, const string& where, const string& limit, 
             bool desc)
     {
-        return PoolSQL::dump(oss, "ZONE_POOL", Zone::table, where, limit, desc);
+        return PoolSQL::dump(oss, "ZONE_POOL", "body", Zone::table, where, limit, desc);
     };
 
     /**

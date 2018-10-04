@@ -92,7 +92,7 @@ public:
     int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
-        return PoolSQL::dump(oss, "VMTEMPLATE_POOL", VMTemplate::table, where,
+        return PoolSQL::dump(oss, "VMTEMPLATE_POOL", "body", VMTemplate::table, where,
                              limit, desc);
     };
 

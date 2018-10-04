@@ -149,7 +149,7 @@ public:
     int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
-        return PoolSQL::dump(oss, "DATASTORE_POOL", Datastore::table, where,
+        return PoolSQL::dump(oss, "DATASTORE_POOL", "body", Datastore::table, where,
                              limit, desc);
     };
 

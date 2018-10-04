@@ -284,7 +284,7 @@ public:
     int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
-        return PoolSQL::dump(oss, "VM_POOL", VirtualMachine::table, where,
+        return PoolSQL::dump(oss, "VM_POOL", "short_body", VirtualMachine::table, where,
                              limit, desc);
     };
 

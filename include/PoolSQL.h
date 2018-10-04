@@ -301,6 +301,7 @@ protected:
      */
     int dump(string& oss,
              const string&  elem_name,
+             const string&  column,
              const char *   table,
              const string&  where,
              const string&  limit,
@@ -323,7 +324,7 @@ protected:
              const string&  where,
              bool           desc)
     {
-        return dump(oss, elem_name, table, where, "", desc);
+        return dump(oss, elem_name, "body", table, where, "", desc);
     }
 
     /**

@@ -152,7 +152,7 @@ public:
     int dump(std::string& oss, const std::string& where,
 		const std::string& limit, bool desc)
     {
-        return PoolSQL::dump(oss, "MARKETPLACEAPP_POOL", MarketPlaceApp::table,
+        return PoolSQL::dump(oss, "MARKETPLACEAPP_POOL", "body", MarketPlaceApp::table,
                 where, limit, desc);
     };
 

@@ -102,7 +102,7 @@ public:
     int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
-        return PoolSQL::dump(oss, "DOCUMENT_POOL", Document::table, where,
+        return PoolSQL::dump(oss, "DOCUMENT_POOL", "body", Document::table, where,
                              limit, desc);
     };
 

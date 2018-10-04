@@ -76,6 +76,28 @@ public:
         Template::parse_restricted(ra, restricted);
     }
 
+    string& to_xml_short(string& xml) const
+    {
+        ostringstream oss;
+        string labels;
+
+        if (attributes.empty())
+        {
+            oss << "<USER_TEMPLATE/>";
+        }
+        else
+        {
+            get("LABELS", labels);
+
+            oss << "<USER_TEMPLATE>"
+                << "<LABELS>"       <<   labels   <<  "</LABELS>"
+                << "</USER_TEMPLATE>";
+        }
+
+        xml = oss.str();
+        return xml;
+    }
+
 private:
     /**
      *  Restricted attribute list for VirtualMachineTemplates

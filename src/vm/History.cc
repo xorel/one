@@ -341,6 +341,28 @@ string& History::to_xml(string& xml, bool database) const
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
+string& History::to_xml_short(string& xml) const
+{
+    ostringstream oss;
+
+    oss <<
+        "<HISTORY>" <<
+          "<OID>"        << oid           << "</OID>"   <<
+          "<SEQ>"        << seq           << "</SEQ>"   <<
+          "<HOSTNAME>"   << hostname      << "</HOSTNAME>"<<
+          "<HID>"        << hid           << "</HID>"   <<
+          "<CID>"        << cid           << "</CID>"   <<
+          "<DS_ID>"      << ds_id         << "</DS_ID>" <<
+        "</HISTORY>";
+
+   xml = oss.str();
+
+   return xml;
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
 int History::rebuild_attributes()
 {
     vector<xmlNodePtr> content;

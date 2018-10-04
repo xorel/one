@@ -457,12 +457,12 @@ const char * VirtualMachine::table = "vm_pool";
 
 const char * VirtualMachine::db_names =
     "oid, name, body, uid, gid, last_poll, state, lcm_state, "
-    "owner_u, group_u, other_u";
+    "owner_u, group_u, other_u, short_body";
 
 const char * VirtualMachine::db_bootstrap = "CREATE TABLE IF NOT EXISTS "
     "vm_pool (oid INTEGER PRIMARY KEY, name VARCHAR(128), body MEDIUMTEXT, uid INTEGER, "
     "gid INTEGER, last_poll INTEGER, state INTEGER, lcm_state INTEGER, "
-    "owner_u INTEGER, group_u INTEGER, other_u INTEGER)";
+    "owner_u INTEGER, group_u INTEGER, other_u INTEGER, short_body MEDIUMTEXT)";
 
 
 const char * VirtualMachine::monit_table = "vm_monitoring";
@@ -1534,9 +1534,10 @@ int VirtualMachine::insert_replace(SqlDB *db, bool replace, string& error_str)
     ostringstream   oss;
     int             rc;
 
-    string xml_body;
+    string xml_body, short_xml_body;
     char * sql_name;
     char * sql_xml;
+    char * sql_short_xml;
 
     sql_name =  db->escape_str(name.c_str());
 
@@ -1553,6 +1554,18 @@ int VirtualMachine::insert_replace(SqlDB *db, bool replace, string& error_str)
     }
 
     if ( validate_xml(sql_xml) != 0 )
+    {
+        goto error_xml;
+    }
+
+    sql_short_xml = db->escape_str(to_xml_short(short_xml_body).c_str());
+
+    if ( sql_short_xml == 0 )
+    {
+        goto error_body;
+    }
+
+    if ( validate_xml(sql_short_xml) != 0 )
     {
         goto error_xml;
     }
@@ -1577,7 +1590,9 @@ int VirtualMachine::insert_replace(SqlDB *db, bool replace, string& error_str)
         <<          lcm_state       << ","
         <<          owner_u         << ","
         <<          group_u         << ","
-        <<          other_u         << ")";
+        <<          other_u         << ","
+        << "'" <<   sql_short_xml   << "'"
+        << ")";
 
     db->free_str(sql_name);
     db->free_str(sql_xml);
@@ -2055,6 +2070,125 @@ string& VirtualMachine::to_xml_extended(string& xml, int n_history) const
         {
             oss << snapshots->to_xml(snap_xml);
         }
+    }
+
+    oss << "</VM>";
+
+    xml = oss.str();
+
+    return xml;
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+string& VirtualMachine::to_xml_short(string& xml) const
+{
+    string template_xml;
+    string user_template_xml;
+    string monitoring_xml;
+    string history_xml;
+    string perm_xml;
+    string snap_xml;
+    string lock_str;
+    string cpu;
+    string ds, ds_id, disk_id, img, img_id, size, target;
+    string listen, passwd, port, r_pass, type;
+    string ip, mac, net, net_id, nic_id, sg;
+    string mem;
+    string vcpu;
+
+    ostringstream   oss;
+
+    oss << "<VM>"
+        << "<ID>"        << oid       << "</ID>"
+        << "<UID>"       << uid       << "</UID>"
+        << "<GID>"       << gid       << "</GID>"
+        << "<UNAME>"     << uname     << "</UNAME>"
+        << "<GNAME>"     << gname     << "</GNAME>"
+        << "<NAME>"      << name      << "</NAME>"
+        << "<LAST_POLL>" << last_poll << "</LAST_POLL>"
+        << "<STATE>"     << state     << "</STATE>"
+        << "<LCM_STATE>" << lcm_state << "</LCM_STATE>"
+        << "<PREV_STATE>"     << prev_state     << "</PREV_STATE>"
+        << "<PREV_LCM_STATE>" << prev_lcm_state << "</PREV_LCM_STATE>"
+        << "<RESCHED>"   << resched   << "</RESCHED>"
+        << "<STIME>"     << stime     << "</STIME>"
+        << "<ETIME>"     << etime     << "</ETIME>"
+        << "<DEPLOY_ID>" << deploy_id << "</DEPLOY_ID>";
+
+    obj_template->get("CPU", cpu);
+
+    VectorAttribute disk = obj_template->get("DISK");
+    disk.vector_value("DISK_ID", disk_id);
+    disk.vector_value("DATASTORE", ds);
+    disk.vector_value("DATASTORE_ID", ds_id);
+    disk.vector_value("IMAGE", img);
+    disk.vector_value("IMAGE_ID", img_id);
+    disk.vector_value("SIZE", size);
+
+    VectorAttribute graph = obj_template->get("GRAPHICS");
+    graph.vector_value("LISTEN", listen);
+    graph.vector_value("PASSWD", passwd);
+    graph.vector_value("PORT", port);
+    graph.vector_value("RANDOM_PASSWD", r_pass);
+    graph.vector_value("TYPE", type);
+
+    obj_template->get("MEMORY", mem);
+
+    VectorAttribute nic = obj_template->get("NIC");
+    nic.vector_value("IP", ip);
+    nic.vector_value("MAC", mac);
+    nic.vector_value("NETWORK", net);
+    nic.vector_value("NETWORK_ID", net_id);
+    nic.vector_value("NIC_ID", nic_id);
+    nic.vector_value("SECURITY_GROUPS", sg);
+
+    obj_template->get("VCPU", vcpu);
+
+
+    oss << "<TEMPLATE>"
+        << "<CPU>"             << one_util::escape_xml(cpu)     << "</CPU>"
+        << "<DISK>"
+        << "<DATASTORE>"       << one_util::escape_xml(ds)      << "</DATASTORE>"
+        << "<DATASTORE_ID>"    << one_util::escape_xml(ds_id)   << "</DATASTORE_ID>"
+        << "<DISK_ID>"         << one_util::escape_xml(disk_id) << "</DISK_ID>"
+        << "<IMAGE>"           << one_util::escape_xml(img)     << "</IMAGE>"
+        << "<IMAGE_ID>"        << one_util::escape_xml(img_id)  << "</IMAGE_ID>"
+        << "<SIZE>"            << one_util::escape_xml(size)    << "</SIZE>"
+        << "<TARGET>"          << one_util::escape_xml(target)  << "</TARGET>"
+        << "</DISK>"
+        << "<GRAPHICS>"
+        << "<LISTEN>"          << one_util::escape_xml(listen)  << "</LISTEN>"
+        << "<PASSWD>"          << one_util::escape_xml(passwd)  << "</PASSWD>"
+        << "<PORT>"            << one_util::escape_xml(port)    << "</PORT>"
+        << "<RANDOM_PASSWD>"   << one_util::escape_xml(r_pass)  << "</RANDOM_PASSWD>"
+        << "<TYPE>"            << one_util::escape_xml(type)    << "</TYPE>"
+        << "</GRAPHICS>"
+        << "<MEMORY>"          << one_util::escape_xml(mem)     << "</MEMORY>"
+        << "<NIC>"
+        << "<IP>"              << one_util::escape_xml(ip)      << "</IP>"
+        << "<MAC>"             << one_util::escape_xml(mac)     << "</MAC>"
+        << "<NETWORK>"         << one_util::escape_xml(net)     << "</NETWORK>"
+        << "<NETWORK_ID>"      << one_util::escape_xml(net_id)  << "</NETWORK_ID>"
+        << "<NIC_ID>"          << one_util::escape_xml(nic_id)  << "</NIC_ID>"
+        << "<SECURITY_GROUPS>" << one_util::escape_xml(sg)      << "</SECURITY_GROUPS>"
+        << "</NIC>"
+        << "<VCPU>"            << one_util::escape_xml(vcpu)     << "</VCPU>"
+        << "</TEMPLATE>"
+
+        << monitoring.to_xml_short(monitoring_xml)
+        << user_obj_template->to_xml_short(user_template_xml);
+
+    if ( hasHistory() )
+    {
+        oss << "<HISTORY_RECORDS>";
+        oss << history_records[history_records.size() - 1]->to_xml_short(history_xml);
+        oss << "</HISTORY_RECORDS>";
+    }
+    else
+    {
+        oss << "<HISTORY_RECORDS/>";
     }
 
     oss << "</VM>";

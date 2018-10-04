@@ -206,7 +206,7 @@ public:
     int dump(string& oss, const string& where, const string& limit, 
         bool desc)
     {
-        return PoolSQL::dump(oss, "CLUSTER_POOL", Cluster::table, where,
+        return PoolSQL::dump(oss, "CLUSTER_POOL", "body", Cluster::table, where,
                              limit, desc);
     };
 

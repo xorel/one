@@ -104,7 +104,7 @@ public:
     int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
-        return PoolSQL::dump(oss, "VROUTER_POOL", VirtualRouter::table, where,
+        return PoolSQL::dump(oss, "VROUTER_POOL", "body", VirtualRouter::table, where,
                              limit, desc);
     };
 
