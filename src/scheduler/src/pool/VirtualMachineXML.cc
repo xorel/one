@@ -99,6 +99,32 @@ void VirtualMachineXML::init_attributes()
         ds_requirements = automatic_ds_requirements;
     }
 
+    // ------------------- NIC REQUIREMENTS -------------------------------------
+
+    vector<string> nics_ids;
+    vector<string> nics_requirement;
+
+    xpaths(nics_ids,"/VM/TEMPLATE/NIC[NETWORK_MODE='auto']/NIC_ID");
+    xpaths(nics_requirement,"/VM/TEMPLATE/NIC[NETWORK_MODE='auto']/REQUIREMENTS");
+
+    int nic_id;
+    string requirements;
+
+    for (size_t i = 0; i < nics_ids.size(); i++)
+    {
+        nic_id       = atoi(nics_ids[i].c_str());
+
+        nics_ids_auto.insert(nic_id);
+    }
+
+    for (size_t i = 0; i < nics_ids.size() && i < nics_requirement.size(); i++)
+    {
+        nic_id       = atoi(nics_ids[i].c_str());
+        requirements = nics_requirement[i];
+
+        nic_requirements[nic_id] = requirements;
+    }
+
     // ---------------- HISTORY HID, DSID, RESCHED & TEMPLATE ------------------
 
     xpath(hid,  "/VM/HISTORY_RECORDS/HISTORY/HID", -1);
@@ -194,6 +220,18 @@ ostream& operator<<(ostream& os, VirtualMachineXML& vm)
     const vector<Resource *> ds_resources = vm.match_datastores.get_resources();
 
     for (i = ds_resources.rbegin(); i != ds_resources.rend() ; i++)
+    {
+        os << "\t" << (*i)->priority << "\t" << (*i)->oid << endl;
+    }
+
+    os << endl;
+
+    os << "\tPRI\tID - NETWORKS"<< endl
+       << "\t------------------------"  << endl;
+
+    const vector<Resource *> net_resources = vm.match_networks.get_resources();
+
+    for (i = net_resources.rbegin(); i != net_resources.rend() ; i++)
     {
         os << "\t" << (*i)->priority << "\t" << (*i)->oid << endl;
     }

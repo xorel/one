@@ -116,6 +116,11 @@ public:
         return ds_requirements;
     }
 
+    const string& get_nic_requirements(int nic_id)
+    {
+        return nic_requirements[nic_id];
+    }
+
     /**
      *  Return VM usage requirments
      */
@@ -205,6 +210,15 @@ public:
     }
 
     /**
+     *  Adds a matching network
+     *    @param oid of the network
+     */
+    void add_match_network(int oid)
+    {
+        match_networks.add_resource(oid);
+    }
+
+    /**
      *  Returns a vector of matched hosts
      */
     const vector<Resource *> get_match_hosts()
@@ -218,6 +232,14 @@ public:
     const vector<Resource *> get_match_datastores()
     {
         return match_datastores.get_resources();
+    }
+
+    /**
+     *  Returns a vector of matched datastores
+     */
+    const vector<Resource *> get_match_networks()
+    {
+        return match_networks.get_resources();
     }
 
     /**
@@ -237,6 +259,14 @@ public:
     }
 
     /**
+     *  Sort the matched networks for the VM
+     */
+    void sort_match_networks()
+    {
+        match_networks.sort_resources();
+    }
+
+    /**
      *  Removes the matched hosts
      */
     void clear_match_hosts()
@@ -250,6 +280,14 @@ public:
     void clear_match_datastores()
     {
         match_datastores.clear();
+    }
+
+    /**
+     *  Removes the matched networks
+     */
+    void clear_match_networks()
+    {
+        match_networks.clear();
     }
 
     /**
@@ -368,6 +406,11 @@ public:
      */
     bool clear_log();
 
+    set<int> get_nics_ids()
+    {
+        return nics_ids_auto;
+    }
+
 protected:
 
     /**
@@ -382,6 +425,8 @@ protected:
     ResourceMatch match_hosts;
 
     ResourceMatch match_datastores;
+
+    ResourceMatch match_networks;
 
     bool only_public_cloud;
 
@@ -414,6 +459,10 @@ protected:
 
     string ds_requirements;
     string ds_rank;
+
+    map<int, string> nic_requirements;
+
+    set<int> nics_ids_auto;
 
     VirtualMachineTemplate * vm_template;   /**< The VM template */
     VirtualMachineTemplate * user_template; /**< The VM user template */
