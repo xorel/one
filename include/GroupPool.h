@@ -101,7 +101,7 @@ public:
      *    @param id of the group
      *    @return name of the group
      */
-    const string& get_name(int gid)
+    const string get_name(int gid)
     {
         static string error_str = "";
 
@@ -112,7 +112,7 @@ public:
             return error_str;
         }
 
-        const string& gname = group->get_name();
+        const string gname = group->get_name();
 
         group->unlock();
 
