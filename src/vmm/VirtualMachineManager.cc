@@ -355,6 +355,7 @@ void VirtualMachineManager::deploy_action(int vid)
 
     int uid = vm->get_created_by_uid();
     int owner_id = vm->get_uid();
+
     vm->unlock();
 
     password = Nebula::instance().get_upool()->get_token_password(uid, owner_id);
@@ -1210,6 +1211,7 @@ void VirtualMachineManager::restore_action(
 
     int uid = vm->get_created_by_uid();
     int owner_id = vm->get_uid();
+
     vm->unlock();
 
     password = Nebula::instance().get_upool()->get_token_password(uid, owner_id);

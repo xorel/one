@@ -1562,12 +1562,12 @@ int VirtualMachine::insert_replace(SqlDB *db, bool replace, string& error_str)
 
     if ( sql_short_xml == 0 )
     {
-        goto error_body;
+        goto error_body_short;
     }
 
     if ( validate_xml(sql_short_xml) != 0 )
     {
-        goto error_xml;
+        goto error_xml_short;
     }
 
     if(replace)
@@ -1602,15 +1602,18 @@ int VirtualMachine::insert_replace(SqlDB *db, bool replace, string& error_str)
 
     return rc;
 
+error_xml_short:
+    db->free_str(sql_short_xml);
 error_xml:
     db->free_str(sql_name);
     db->free_str(sql_xml);
-    db->free_str(sql_short_xml);
 
     error_str = "Error transforming the VM to XML.";
 
     goto error_common;
 
+error_body_short:
+    db->free_str(sql_xml);
 error_body:
     db->free_str(sql_name);
     goto error_generic;
