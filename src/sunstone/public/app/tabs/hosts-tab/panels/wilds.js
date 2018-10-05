@@ -113,6 +113,9 @@ define(function(require) {
           ];
 
           that.dataTableWildHosts.fnAddData(wilds_list_array);
+          elem.HYPERVISOR = that.element.VM_MAD;
+          elem.HOST_ID = that.element.ID;
+          $(".import_wild_checker.import_" + index, context).data("import_data", elem);
         }
       });
     }
@@ -139,53 +142,71 @@ define(function(require) {
       $("#import_wilds", context).html('<i class="fas fa-spinner fa-spin"></i>');
 
       $(".import_wild_checker:checked", "#datatable_host_wilds").each(function() {
-        var importHostId = that.element.ID;
-        var wild_row       = $(this).closest('tr');
-
+        var wild_obj = $(this).data("import_data");
+        var wild_row = $(this).closest('tr');
         var aData = that.dataTableWildHosts.fnGetData(wild_row);
-        var vmName = aData[1];
-        var remoteID = aData[2];
 
-        var dataJSON = {
-          'id': importHostId,
-          'extra_param': {
-            'name': vmName
-          }
-        };
+        if (wild_obj.HYPERVISOR === "vcenter"){
+          var path = "/vcenter/wild";
+          var resource = "Wild";
 
-        // Create the VM in OpenNebula
-        OpenNebulaHost.import_wild({
-          timeout: true,
-          data: dataJSON,
-          success: function(request, response) {
-            OpenNebulaAction.clear_cache("VM");
-            Notifier.notifyCustom(Locale.tr("VM imported"),
-              Navigation.link(" ID: " + response.VM.ID, "vms-tab", response.VM.ID),
-              false);
+          $.ajax({
+            url: path,
+            type: "POST",
+            data: { datastores: vcenter_refs, timeout: false },
+            dataType: "json",
+            success: function(response){
 
-            // Delete row (shouldn't be there in next monitorization)
-            that.dataTableWildHosts.fnDeleteRow(wild_row);
+            },
+            error: function (request, error_json) {
 
-            $("#import_wilds", context).removeAttr("disabled").off("click.disable");
-            $("#import_wilds", context).html(Locale.tr("Import Wilds"));
-          },
-          error: function (request, error_json) {
-            var msg;
-            if (error_json.error.message){
-              msg = error_json.error.message;
-            } else {
-              msg = Locale.tr("Cannot contact server: is it running and reachable?");
             }
+          });
+        }
 
-            Notifier.notifyError(msg);
+        else {
+          var dataJSON = {
+            'id': that.element.ID,
+            'extra_param': {
+              'name': aData[1]
+            }
+          };
 
-            $("#import_wilds", context).removeAttr("disabled").off("click.disable");
-            $("#import_wilds", context).html(Locale.tr("Import Wilds"));
-          }
-        });
+          // Create the VM in OpenNebula
+          OpenNebulaHost.import_wild({
+            timeout: true,
+            data: dataJSON,
+            success: function(request, response) {
+              OpenNebulaAction.clear_cache("VM");
+              Notifier.notifyCustom(Locale.tr("VM imported"),
+              Navigation.link(" ID: " + response.VM.ID, "vms-tab", response.VM.ID), false);
+              // Delete row (shouldn't be there in next monitorization)
+              that.dataTableWildHosts.fnDeleteRow(wild_row);
+
+              $("#import_wilds", context).removeAttr("disabled").off("click.disable");
+              $("#import_wilds", context).html(Locale.tr("Import Wilds"));
+            },
+            error: function (request, error_json) {
+              wildsError(error_json, context);
+            }
+          });
+        }
       });
     });
 
     return false;
+  }
+
+  function wildsError(error_json, context){
+    var msg;
+    if (error_json.error.message){
+      msg = error_json.error.message;
+    } else {
+      msg = Locale.tr("Cannot contact server: is it running and reachable?");
+    }
+    Notifier.notifyError(msg);
+
+    $("#import_wilds", context).removeAttr("disabled").off("click.disable");
+    $("#import_wilds", context).html(Locale.tr("Import Wilds"));
   }
 });
