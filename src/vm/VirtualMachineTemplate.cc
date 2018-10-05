@@ -79,3 +79,94 @@ int VirtualMachineTemplate::replace_disk_image(int target_id, const string&
 
     return 0;
 }
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+string& VirtualMachineTemplate::to_xml_short(string& xml) const
+{
+    ostringstream oss;
+    string labels;
+
+    string schd_rank, schd_ds_rank;
+    string schd_req, schd_ds_req;
+
+    vector<const VectorAttribute*> attrs;
+
+    if (attributes.empty())
+    {
+        oss << "<USER_TEMPLATE/>";
+    }
+    else
+    {
+         oss << "<USER_TEMPLATE>";
+
+        /* ------------------------------------------------------------------ */
+        /* Attributes required by Sunstone                                    */
+        /*  - LABELS                                                          */
+        /* ------------------------------------------------------------------ */
+        if (get("LABELS", labels))
+        {
+            oss << "<LABELS>" << labels << "</LABELS>";
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Attributes required by Scheduler                                   */
+        /*  - SCHED_RANK (RANK - deprecated)                                  */
+        /*  - SCHED_DS_RANK                                                   */
+        /*  - SCHED_REQUIREMENTS                                              */
+        /*  - SCHED_DS_REQUIREMENTS                                           */
+        /*                                                                    */
+        /*  - SCHED_ACTION                                                    */
+        /*  - PUBLIC_CLOUD                                                    */
+        /* ------------------------------------------------------------------ */
+        if (get("SCHED_RANK", schd_rank))
+        {
+            oss << "<SCHED_RANK>" << schd_rank << "</SCHED_RANK>";
+        }
+
+        if (get("SCHED_DS_RANK", schd_ds_rank))
+        {
+            oss << "<SCHED_DS_RANK>" << schd_ds_rank << "</SCHED_DS_RANK>";
+        }
+
+        if (get("SCHED_REQUIREMENTS", schd_req))
+        {
+            oss << "<SCHED_REQUIREMENTS>" << schd_req << "</SCHED_REQUIREMENTS>";
+        }
+
+        if (get("SCHED_DS_REQUIREMENTS", schd_ds_req))
+        {
+            oss << "<SCHED_DS_REQUIREMENTS>" << schd_ds_req << "</SCHED_DS_REQUIREMENTS>";
+        }
+
+        if ( get("PUBLIC_CLOUD", attrs) > 0 )
+        {
+            vector<const VectorAttribute *>::const_iterator it;
+
+            for (it = attrs.begin(); it != attrs.end(); it++)
+            {
+                oss << (*it)->to_xml();
+            }
+        }
+
+        attrs.clear();
+
+        if ( get("SCHED_ACTION", attrs) > 0 )
+        {
+            vector<const VectorAttribute *>::const_iterator it;
+
+            for (it = attrs.begin(); it != attrs.end(); it++)
+            {
+                oss << (*it)->to_xml();
+            }
+        }
+
+        oss << "</USER_TEMPLATE>";
+    }
+
+    xml = oss.str();
+
+    return xml;
+}
+

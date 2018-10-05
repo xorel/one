@@ -574,7 +574,9 @@ void VirtualMachineDisk::to_xml_short(std::ostringstream& oss) const
         << "<CLONE>"        << vector_value("CLONE")        << "</CLONE>"
         << "<CLONE_TARGET>" << vector_value("CLONE_TARGET") << "</CLONE_TARGET>"
         << "<LN_TARGET>"    << vector_value("LN_TARGET")    << "</LN_TARGET>"
-        << "<DISK_SNAPSHOT_TOTAL_SIZE>" << vector_value("DISK_SNAPSHOT_TOTAL_SIZE") << "</DISK_SNAPSHOT_TOTAL_SIZE>"
+        << "<DISK_SNAPSHOT_TOTAL_SIZE>" 
+            << vector_value("DISK_SNAPSHOT_TOTAL_SIZE") 
+            << "</DISK_SNAPSHOT_TOTAL_SIZE>"
         << "</DISK>";
 }
 
