@@ -161,6 +161,9 @@ void VirtualMachineNic::authorize(PoolObjectSQL::ObjectType ot, int uid,
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
+#define XML_NIC_ATTR(Y,X) ( Y << "<" << X << ">" << \
+        one_util::escape_xml(vector_value(X)) << "</" << X << ">") 
+
 void VirtualMachineNic::to_xml_short(std::ostringstream& oss) const
 {
     std::string ip      = vector_value("IP");
@@ -171,26 +174,26 @@ void VirtualMachineNic::to_xml_short(std::ostringstream& oss) const
 
     if (!ip.empty())
     {
-        oss << "<IP>" << ip << "</IP>";
+        oss << "<IP>" << one_util::escape_xml(ip) << "</IP>";
     }
 
     if (!ip6.empty())
     {
-        oss << "<IP6>" << ip6 << "</IP6>";
+        oss << "<IP6>" << one_util::escape_xml(ip6) << "</IP6>";
     }
 
     if (!ip6_ula.empty())
     {
-        oss << "<IP6_ULA>" << ip6 << "</IP6_ULA>";
+        oss << "<IP6_ULA>" << one_util::escape_xml(ip6_ula) << "</IP6_ULA>";
     }
 
-    oss << "<MAC>"        << vector_value("MAC")        << "</MAC>"
-        << "<NETWORK>"    << vector_value("NETWORK")    << "</NETWORK>"
-        << "<NETWORK_ID>" << vector_value("NETWORK_ID") << "</NETWORK_ID>"
-        << "<NIC_ID>"     << vector_value("NIC_ID")     << "</NIC_ID>"
-        << "<SECURITY_GROUPS>" << vector_value("SECURITY_GROUPS") 
-            << "</SECURITY_GROUPS>"
-        << "</NIC>";
+    XML_NIC_ATTR(oss, "MAC");
+    XML_NIC_ATTR(oss, "NETWORK");
+    XML_NIC_ATTR(oss, "NETWORK_ID");
+    XML_NIC_ATTR(oss, "NIC_ID");
+    XML_NIC_ATTR(oss, "SECURITY_GROUPS");
+
+    oss << "</NIC>";
 }
 
 /* -------------------------------------------------------------------------- */

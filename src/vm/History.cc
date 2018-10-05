@@ -347,13 +347,13 @@ string& History::to_xml_short(string& xml) const
 
     oss <<
         "<HISTORY>" <<
-          "<OID>"        << oid           << "</OID>"   <<
-          "<SEQ>"        << seq           << "</SEQ>"   <<
-          "<HOSTNAME>"   << hostname      << "</HOSTNAME>"<<
-          "<HID>"        << hid           << "</HID>"   <<
-          "<CID>"        << cid           << "</CID>"   <<
-          "<DS_ID>"      << ds_id         << "</DS_ID>" <<
-          "<ACTION>"     << action        << "</ACTION>"<<
+          "<OID>" << oid << "</OID>" <<
+          "<SEQ>" << seq << "</SEQ>" <<
+          "<HOSTNAME>" << one_util::escape_xml(hostname) << "</HOSTNAME>" <<
+          "<HID>"    << hid   << "</HID>"   <<
+          "<CID>"    << cid   << "</CID>"   <<
+          "<DS_ID>"  << ds_id << "</DS_ID>" <<
+          "<ACTION>" << one_util::escape_xml(action) << "</ACTION>" <<
         "</HISTORY>";
 
    xml = oss.str();

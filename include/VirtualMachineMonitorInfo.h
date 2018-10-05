@@ -93,9 +93,9 @@ public:
             get("STATE", state);
 
             oss << "<MONITORING>"
-                << "<CPU>"         <<   cpu     <<  "</CPU>"
-                << "<MEMORY>"      <<   memory  <<  "</MEMORY>"
-                << "<STATE>"       <<   state   <<  "</STATE>"
+                << "<CPU>"    << one_util::escape_xml(cpu)    <<  "</CPU>"
+                << "<MEMORY>" << one_util::escape_xml(memory) <<  "</MEMORY>"
+                << "<STATE>"  << one_util::escape_xml(state)  <<  "</STATE>"
                 << "</MONITORING>";
         }
 

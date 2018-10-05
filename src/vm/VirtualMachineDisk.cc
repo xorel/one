@@ -560,24 +560,24 @@ void VirtualMachineDisk::set_types(const string& ds_name)
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
+#define XML_DISK_ATTR(Y,X) ( Y << "<" << X << ">" << \
+        one_util::escape_xml(vector_value(X)) << "</" << X << ">") 
 
 void VirtualMachineDisk::to_xml_short(std::ostringstream& oss) const
 {
-    oss << "<DISK>"
-        << "<DISK_ID>"      << vector_value("DISK_ID")      << "</DISK_ID>"
-        << "<DATASTORE>"    << vector_value("DATASTORE")    << "</DATASTORE>"
-        << "<DATASTORE_ID>" << vector_value("DATASTORE_ID") << "</DATASTORE_ID>"
-        << "<IMAGE>"        << vector_value("IMAGE")        << "</IMAGE>"
-        << "<IMAGE_ID>"     << vector_value("IMAGE_ID")     << "</IMAGE_ID>"
-        << "<SIZE>"         << vector_value("SIZE")         << "</SIZE>"
-        << "<TYPE>"         << vector_value("TYPE")         << "</TYPE>"
-        << "<CLONE>"        << vector_value("CLONE")        << "</CLONE>"
-        << "<CLONE_TARGET>" << vector_value("CLONE_TARGET") << "</CLONE_TARGET>"
-        << "<LN_TARGET>"    << vector_value("LN_TARGET")    << "</LN_TARGET>"
-        << "<DISK_SNAPSHOT_TOTAL_SIZE>" 
-            << vector_value("DISK_SNAPSHOT_TOTAL_SIZE") 
-            << "</DISK_SNAPSHOT_TOTAL_SIZE>"
-        << "</DISK>";
+    oss << "<DISK>" ;
+    XML_DISK_ATTR(oss, "DISK_ID");
+    XML_DISK_ATTR(oss, "DATASTORE");
+    XML_DISK_ATTR(oss, "DATASTORE_ID");
+    XML_DISK_ATTR(oss, "IMAGE");
+    XML_DISK_ATTR(oss, "IMAGE_ID");
+    XML_DISK_ATTR(oss, "SIZE");
+    XML_DISK_ATTR(oss, "TYPE");
+    XML_DISK_ATTR(oss, "CLONE");
+    XML_DISK_ATTR(oss, "CLONE_TARGET");
+    XML_DISK_ATTR(oss, "LN_TARGET");
+    XML_DISK_ATTR(oss, "DISK_SNAPSHOT_TOTAL_SIZE");
+    oss << "</DISK>";
 }
 
 /* -------------------------------------------------------------------------- */

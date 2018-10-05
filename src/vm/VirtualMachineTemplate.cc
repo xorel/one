@@ -107,7 +107,7 @@ string& VirtualMachineTemplate::to_xml_short(string& xml) const
         /* ------------------------------------------------------------------ */
         if (get("LABELS", labels))
         {
-            oss << "<LABELS>" << labels << "</LABELS>";
+            oss << "<LABELS>" << one_util::escape_xml(labels) << "</LABELS>";
         }
 
         /* ------------------------------------------------------------------ */
@@ -122,22 +122,26 @@ string& VirtualMachineTemplate::to_xml_short(string& xml) const
         /* ------------------------------------------------------------------ */
         if (get("SCHED_RANK", schd_rank))
         {
-            oss << "<SCHED_RANK>" << schd_rank << "</SCHED_RANK>";
+            oss << "<SCHED_RANK>" << one_util::escape_xml(schd_rank) 
+                << "</SCHED_RANK>";
         }
 
         if (get("SCHED_DS_RANK", schd_ds_rank))
         {
-            oss << "<SCHED_DS_RANK>" << schd_ds_rank << "</SCHED_DS_RANK>";
+            oss << "<SCHED_DS_RANK>" << one_util::escape_xml(schd_ds_rank) 
+                << "</SCHED_DS_RANK>";
         }
 
         if (get("SCHED_REQUIREMENTS", schd_req))
         {
-            oss << "<SCHED_REQUIREMENTS>" << schd_req << "</SCHED_REQUIREMENTS>";
+            oss << "<SCHED_REQUIREMENTS>" << one_util::escape_xml(schd_req) 
+                << "</SCHED_REQUIREMENTS>";
         }
 
         if (get("SCHED_DS_REQUIREMENTS", schd_ds_req))
         {
-            oss << "<SCHED_DS_REQUIREMENTS>" << schd_ds_req << "</SCHED_DS_REQUIREMENTS>";
+            oss << "<SCHED_DS_REQUIREMENTS>" << one_util::escape_xml(schd_ds_req) 
+                << "</SCHED_DS_REQUIREMENTS>";
         }
 
         if ( get("PUBLIC_CLOUD", attrs) > 0 )
