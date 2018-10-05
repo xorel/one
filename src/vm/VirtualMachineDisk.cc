@@ -564,12 +564,17 @@ void VirtualMachineDisk::set_types(const string& ds_name)
 void VirtualMachineDisk::to_xml_short(std::ostringstream& oss) const
 {
     oss << "<DISK>"
-        << "<DISK_ID>"     << vector_value("DISK_ID")     << "</DISK_ID>"
-        << "<DATASTORE>"   << vector_value("DATASTORE")   << "</DATASTORE>"
-        << "<DATASTORE_ID>"<< vector_value("DATASTORE_ID")<< "</DATASTORE_ID>"
-        << "<IMAGE>"       << vector_value("IMAGE")       << "</IMAGE>"
-        << "<IMAGE_ID>"    << vector_value("IMAGE_ID")    << "</IMAGE_ID>"
-        << "<SIZE>"        << vector_value("SIZE")        << "</SIZE>"
+        << "<DISK_ID>"      << vector_value("DISK_ID")      << "</DISK_ID>"
+        << "<DATASTORE>"    << vector_value("DATASTORE")    << "</DATASTORE>"
+        << "<DATASTORE_ID>" << vector_value("DATASTORE_ID") << "</DATASTORE_ID>"
+        << "<IMAGE>"        << vector_value("IMAGE")        << "</IMAGE>"
+        << "<IMAGE_ID>"     << vector_value("IMAGE_ID")     << "</IMAGE_ID>"
+        << "<SIZE>"         << vector_value("SIZE")         << "</SIZE>"
+        << "<TYPE>"         << vector_value("TYPE")         << "</TYPE>"
+        << "<CLONE>"        << vector_value("CLONE")        << "</CLONE>"
+        << "<CLONE_TARGET>" << vector_value("CLONE_TARGET") << "</CLONE_TARGET>"
+        << "<LN_TARGET>"    << vector_value("LN_TARGET")    << "</LN_TARGET>"
+        << "<DISK_SNAPSHOT_TOTAL_SIZE>" << vector_value("DISK_SNAPSHOT_TOTAL_SIZE") << "</DISK_SNAPSHOT_TOTAL_SIZE>"
         << "</DISK>";
 }
 

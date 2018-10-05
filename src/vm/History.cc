@@ -353,6 +353,7 @@ string& History::to_xml_short(string& xml) const
           "<HID>"        << hid           << "</HID>"   <<
           "<CID>"        << cid           << "</CID>"   <<
           "<DS_ID>"      << ds_id         << "</DS_ID>" <<
+          "<ACTION>"     << action        << "</ACTION>"<<
         "</HISTORY>";
 
    xml = oss.str();

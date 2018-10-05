@@ -80,6 +80,9 @@ public:
     {
         ostringstream oss;
         string labels;
+        string schd_rank, rank,schd_ds_rank;
+        string public_cloud, ec2;
+        string schd_req, schd_ds_req, schd_messg;
 
         if (attributes.empty())
         {
@@ -87,11 +90,46 @@ public:
         }
         else
         {
-            get("LABELS", labels);
+             oss << "<USER_TEMPLATE>";
 
-            oss << "<USER_TEMPLATE>"
-                << "<LABELS>"       <<   labels   <<  "</LABELS>"
-                << "</USER_TEMPLATE>";
+            if (get("LABELS", labels))
+            {
+                oss << "<LABELS>" << labels << "</LABELS>";
+            }
+            if (get("SCHED_RANK", schd_rank))
+            {
+                oss << "<SCHED_RANK>" << schd_rank << "</SCHED_RANK>";
+            }
+            if (get("RANK", rank))
+            {
+                oss << "<RANK>" << rank << "</RANK>";
+            }
+            if (get("SCHED_DS_RANK", schd_ds_rank))
+            {
+                oss << "<SCHED_DS_RANK>" << schd_ds_rank << "</SCHED_DS_RANK>";
+            }
+            if (get("PUBLIC_CLOUD", public_cloud))
+            {
+                oss << "<PUBLIC_CLOUD>" << public_cloud << "</PUBLIC_CLOUD>";
+            }
+            if (get("EC2", ec2))
+            {
+                oss << "<EC2>" << ec2 << "</EC2>";
+            }
+            if (get("SCHED_REQUIREMENTS", schd_req))
+            {
+                oss << "<SCHED_REQUIREMENTS>" << schd_req << "</SCHED_REQUIREMENTS>";
+            }
+            if (get("SCHED_DS_REQUIREMENTS", schd_ds_req))
+            {
+                oss << "<SCHED_DS_REQUIREMENTS>" << schd_ds_req << "</SCHED_DS_REQUIREMENTS>";
+            }
+            if (get("SCHED_MESSAGE", schd_messg))
+            {
+                oss << "<SCHED_MESSAGE>" << schd_messg << "</SCHED_MESSAGE>";
+            }
+
+            oss << "</USER_TEMPLATE>";
         }
 
         xml = oss.str();

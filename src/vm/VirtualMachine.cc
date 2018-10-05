@@ -2091,10 +2091,12 @@ string& VirtualMachine::to_xml_short(string& xml)
 {
     string disks_xml, monitoring_xml, user_template_xml, history_xml, nics_xml;
     ostringstream   oss;
-    string cpu_tmpl, mem_tmpl;
+    string cpu_tmpl, mem_tmpl, auto_reqs, auto_ds_reqs;
 
     obj_template->get("CPU", cpu_tmpl);
     obj_template->get("MEMORY", mem_tmpl);
+    obj_template->get("AUTOMATIC_REQUIREMENTS", auto_reqs);
+    obj_template->get("AUTOMATIC_DS_REQUIREMENTS", auto_ds_reqs);
 
     oss << "<VM>"
         << "<ID>"        << oid       << "</ID>"
@@ -2122,6 +2124,20 @@ string& VirtualMachine::to_xml_short(string& xml)
     if ( graph != 0 )
     {
         graph->to_xml(oss);
+    }
+
+    if (!auto_reqs.empty())
+    {
+        oss << "<AUTOMATIC_REQUIREMENTS>";
+        oss << one_util::escape_xml(auto_reqs);
+        oss << "</AUTOMATIC_REQUIREMENTS>";
+    }
+
+    if (!auto_ds_reqs.empty())
+    {
+        oss << "<AUTOMATIC_DS_REQUIREMENTS>";
+        oss << one_util::escape_xml(auto_ds_reqs);
+        oss << "</AUTOMATIC_DS_REQUIREMENTS>";
     }
 
     oss << "</TEMPLATE>"
