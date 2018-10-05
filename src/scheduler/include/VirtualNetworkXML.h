@@ -56,13 +56,16 @@ public:
 
     /**
      *  Adds a new lease to the VNET
-     *    @param num_leases leases needed by the VM
-     *    @return 0 on success
      */
-    void add_leases(int ar, int num_leases)
+    void add_lease()
     {
-        free_leases -= num_leases;
+        free_leases --;
     };
+
+    void rollback_leases(int num_leases)
+    {
+        free_leases += num_leases;
+    }
 
     int get_oid() const
     {
@@ -109,9 +112,9 @@ private:
 
     int free_leases;
 
-    static const char *ds_paths[]; /**< paths for search function */
+    static const char *net_paths[]; /**< paths for search function */
 
-    static int ds_num_paths; /**< number of paths*/
+    static int net_num_paths; /**< number of paths*/
 
     void init_attributes();
 };

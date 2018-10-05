@@ -24,9 +24,9 @@
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-int VirtualNetworkXML::ds_num_paths = 2;
+int VirtualNetworkXML::net_num_paths = 2;
 
-const char * VirtualNetworkXML::ds_paths[] = {
+const char * VirtualNetworkXML::net_paths[] = {
     "/VNET/TEMPLATE/",
     "/VNET/"
 };
@@ -85,8 +85,8 @@ void VirtualNetworkXML::init_attributes()
 
     free_leases -= used_leases;
 
-    ObjectXML::paths     = ds_paths;
-    ObjectXML::num_paths = ds_num_paths;
+    ObjectXML::paths     = net_paths;
+    ObjectXML::num_paths = net_num_paths;
 }
 
 /* -------------------------------------------------------------------------- */

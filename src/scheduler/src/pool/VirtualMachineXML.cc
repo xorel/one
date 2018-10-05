@@ -103,18 +103,23 @@ void VirtualMachineXML::init_attributes()
 
     vector<string> nics_ids;
     vector<string> nics_requirement;
+    vector<string> nics_rank;
 
     xpaths(nics_ids,"/VM/TEMPLATE/NIC[NETWORK_MODE=\"auto\"]/NIC_ID");
-    xpaths(nics_requirement,"/VM/TEMPLATE/NIC[NETWORK_MODE=\"auto\"]/REQUIREMENTS");
+    xpaths(nics_requirement,"/VM/TEMPLATE/NIC[NETWORK_MODE=\"auto\"]/SCHED_REQUIREMENTS");
+    xpaths(nics_rank,"/VM/TEMPLATE/NIC[NETWORK_MODE=\"auto\"]/SCHED_RANK");
 
     int nic_id;
     string requirements;
+    string rank;
 
     for (size_t i = 0; i < nics_ids.size(); i++)
     {
         nic_id       = atoi(nics_ids[i].c_str());
 
         nics_ids_auto.insert(nic_id);
+
+        nics[nic_id] = new VirtualMachineNicXML();
     }
 
     for (size_t i = 0; i < nics_ids.size() && i < nics_requirement.size(); i++)
@@ -123,6 +128,14 @@ void VirtualMachineXML::init_attributes()
         requirements = nics_requirement[i];
 
         nic_requirements[nic_id] = requirements;
+    }
+
+    for (size_t i = 0; i < nics_ids.size() && i < nics_rank.size(); i++)
+    {
+        nic_id       = atoi(nics_ids[i].c_str());
+        rank         = nics_rank[i];
+
+        nics[nic_id]->add_nic_rank(rank);
     }
 
     // ---------------- HISTORY HID, DSID, RESCHED & TEMPLATE ------------------
@@ -235,7 +248,7 @@ ostream& operator<<(ostream& os, VirtualMachineXML& vm)
         os << "\tPRI\tID - NETWORKS"<< endl
         << "\t------------------------"  << endl;
 
-        const vector<Resource *> net_resources = vm.match_networks[*it].get_resources();
+        const vector<Resource *> net_resources = vm.nics[*it]->get_match_networks();
 
         for (i = net_resources.rbegin(); i != net_resources.rend() ; i++)
         {

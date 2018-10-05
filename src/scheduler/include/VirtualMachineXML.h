@@ -31,6 +31,59 @@ class ImageDatastorePoolXML;
 
 using namespace std;
 
+class VirtualMachineNicXML : public ObjectXML
+{
+public:
+
+    /**
+     *  Returns a vector of matched datastores
+    */
+    const vector<Resource *> get_match_networks()
+    {
+        return match_networks.get_resources();
+    }
+
+    /**
+     *  Adds a matching network
+     *    @param oid of the network
+     */
+    void add_match_network(int oid)
+    {
+        match_networks.add_resource(oid);
+    }
+
+    /**
+     *  Sort the matched networks for the VM
+     */
+    void sort_match_networks()
+    {
+       match_networks.sort_resources();
+    }
+
+    /**
+     *  Removes the matched networks
+     */
+    void clear_match_networks()
+    {
+        match_networks.clear();
+    }
+
+    const string& get_nic_rank()
+    {
+        return nic_rank;
+    };
+
+    void add_nic_rank(string rank)
+    {
+        nic_rank = rank;
+    }
+
+protected:
+    ResourceMatch match_networks;
+
+    string nic_rank;
+};
+
 class VirtualMachineXML : public ObjectXML
 {
 public:
@@ -104,6 +157,11 @@ public:
     const string& get_ds_rank()
     {
         return ds_rank;
+    };
+
+    const string& get_nic_rank(int nic_id)
+    {
+        return nics[nic_id]->get_nic_rank();
     };
 
     const string& get_requirements()
@@ -215,7 +273,7 @@ public:
      */
     void add_match_network(int oid, int nic_id)
     {
-        match_networks[nic_id].add_resource(oid);
+        nics[nic_id]->add_match_network(oid);
     }
 
     /**
@@ -235,11 +293,19 @@ public:
     }
 
     /**
-     *  Returns a vector of matched datastores
+     *  Returns a vector of matched networks
      */
     const vector<Resource *> get_match_networks(int nic_id)
     {
-        return match_networks[nic_id].get_resources();
+        return nics[nic_id]->get_match_networks();
+    }
+
+    /**
+     *  Returns a VirtualMachineNicXML
+     */
+    VirtualMachineNicXML * get_nic(int nic_id)
+    {
+        return nics[nic_id];
     }
 
     /**
@@ -261,12 +327,9 @@ public:
     /**
      *  Sort the matched networks for the VM
      */
-    void sort_match_networks()
+    void sort_match_networks(int nic_id)
     {
-        for (map<int, ResourceMatch>::iterator it = match_networks.begin(); it != match_networks.end(); it++ )
-        {
-            it->second.sort_resources();
-        }
+        nics[nic_id]->sort_match_networks();
     }
 
     /**
@@ -290,9 +353,9 @@ public:
      */
     void clear_match_networks()
     {
-        for (map<int, ResourceMatch>::iterator it = match_networks.begin(); it != match_networks.end(); it++ )
+        for (map<int, VirtualMachineNicXML *>::iterator it = nics.begin(); it != nics.end(); it++ )
         {
-            it->second.clear();
+            it->second->clear_match_networks();
         }
     }
 
@@ -432,7 +495,7 @@ protected:
 
     ResourceMatch match_datastores;
 
-    map<int, ResourceMatch> match_networks;
+    map<int, VirtualMachineNicXML *> nics;
 
     bool only_public_cloud;
 
