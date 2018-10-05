@@ -2155,6 +2155,17 @@ string& VirtualMachine::to_xml_short(string& xml)
         oss << "<HISTORY_RECORDS/>";
     }
 
+    std::vector<VectorAttribute *> vm_groups;
+
+    if (obj_template->get("VMGROUP", vm_groups) > 0)
+    {
+        for (std::vector<VectorAttribute *>::iterator it = vm_groups.begin();
+				it != vm_groups.end() ; it++)
+		{
+			(*it)->to_xml(oss);
+		}
+    }
+
     oss << "</VM>";
 
     xml = oss.str();
