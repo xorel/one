@@ -146,7 +146,7 @@ string& VirtualMachineTemplate::to_xml_short(string& xml) const
 
             for (it = attrs.begin(); it != attrs.end(); it++)
             {
-                oss << (*it)->to_xml();
+                (*it)->to_xml(oss);
             }
         }
 
