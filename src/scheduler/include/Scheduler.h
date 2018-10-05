@@ -147,9 +147,9 @@ protected:
         vm_policies.push_back(policy);
     }
 
-    void add_net_policy(SchedulerPolicy *policy)
+    void add_nic_policy(SchedulerPolicy *policy)
     {
-        net_policies.push_back(policy);
+        nic_policies.push_back(policy);
     }
 
     // ---------------------------------------------------------------
@@ -192,7 +192,7 @@ private:
     vector<SchedulerPolicy *> host_policies;
     vector<SchedulerPolicy *> ds_policies;
     vector<SchedulerPolicy *> vm_policies;
-    vector<SchedulerPolicy *> net_policies;
+    vector<SchedulerPolicy *> nic_policies;
 
     // ---------------------------------------------------------------
     // Configuration attributes

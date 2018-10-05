@@ -791,13 +791,12 @@ static bool match_network(AclXML * acls, UserPoolXML * upool,
     // Evaluate VM requirements for NICS
     // -------------------------------------------------------------------------
 
-    bool    a_matched;
     bool    matched   = true;
 
     if (!vm->get_nic_requirements(nic_id).empty())
     {
         char * estr;
-        if ( net->eval_bool(vm->get_nic_requirements(nic_id), a_matched, &estr) != 0 )
+        if ( net->eval_bool(vm->get_nic_requirements(nic_id), matched, &estr) != 0 )
         {
             ostringstream oss;
 
@@ -1135,17 +1134,20 @@ void Scheduler::match_schedule()
 
         profile(true);
 
-        n_resources = 0;
-        n_auth    = 0;
-        n_matched = 0;
-        n_error   = 0;
-        n_fits    = 0;
-
         set<int> nics_ids = vm->get_nics_ids();
 
-        for (set<int>::iterator it = nics_ids.begin(); it != nics_ids.end(); it++)
+        bool not_matched = false;
+
+        for (set<int>::iterator it_nic = nics_ids.begin(); it_nic != nics_ids.end(); it_nic++)
         {
-            int nic_id = *it;
+            n_resources = 0;
+            n_auth    = 0;
+            n_matched = 0;
+            n_error   = 0;
+            n_fits    = 0;
+
+            int nic_id = *it_nic;
+
             for (obj_it=nets.begin(); obj_it != nets.end(); obj_it++)
             {
                 net = static_cast<VirtualNetworkXML *>(obj_it->second);
@@ -1174,24 +1176,69 @@ void Scheduler::match_schedule()
                     }
                 }
             }
+
+            if (n_resources == 0)
+            {
+                if (n_error == 0)//No syntax error
+                {
+                    if (nets.size() == 0)
+                    {
+                        vm->log("No networks found to run VMs");
+                    }
+                    else if (n_auth == 0)
+                    {
+                        vm->log("User is not authorized to use any network");
+                    }
+                    else if (n_fits == 0)
+                    {
+                        ostringstream oss;
+                        oss <<  "No network with enough capacity for the VM";
+
+                        vm->log(oss.str());
+                    }
+                    else if (n_matched == 0)
+                    {
+                        ostringstream oss;
+
+                        oss << "No network meet leases "
+                            << "and SCHED_NIC_REQUIREMENTS: "
+                            << vm->get_nic_requirements(nic_id);
+
+                        vm->log(oss.str());
+                    }
+                }
+
+                vm->clear_match_hosts();
+                vm->clear_match_datastores();
+
+                vmpool->update(vm);
+
+                log_match(vm->get_oid(), "Cannot schedule VM, there is no suitable "
+                    "network.");
+
+                break;
+
+                not_matched = true;
+            }
+
+            profile(true);
+
+            for (it=nic_policies.begin() ; it != nic_policies.end() ; it++)
+            {
+                (*it)->schedule(vm->get_nic(nic_id));
+            }
+
+            vm->sort_match_networks(nic_id);
+
+            total_net_rank_time += profile(false);
+        }
+
+        if ( not_matched )
+        {
+            continue;
         }
 
         total_net_match_time += profile(false);
-
-        //---------------------------------------------------------------------
-        // Schedule matched Networks
-        //---------------------------------------------------------------------
-
-        profile(true);
-
-        for (it=net_policies.begin() ; it != net_policies.end() ; it++)
-        {
-            (*it)->schedule(vm);
-        }
-
-        vm->sort_match_networks();
-
-        total_net_rank_time += profile(false);
     }
 
     if (NebulaLog::log_level() >= Log::DDEBUG)
@@ -1473,6 +1520,8 @@ void Scheduler::dispatch()
             extra.clear();
 
             set<int> nics_ids = vm->get_nics_ids();
+            map<int, int> matched_networks;
+            long unsigned int num_mached_networks = 0;
 
             for(set<int>::iterator it = nics_ids.begin(); it != nics_ids.end(); it++)
             {
@@ -1506,6 +1555,9 @@ void Scheduler::dispatch()
                     {
                         continue;
                     }
+
+                    net->add_lease();
+
                     //--------------------------------------------------------------
                     //Select this DS to dispatch VM
                     //--------------------------------------------------------------
@@ -1519,15 +1571,41 @@ void Scheduler::dispatch()
                     continue;
                 }
 
+                if ( matched_networks.find(netid) != matched_networks.end() )
+                {
+                    matched_networks[netid] += 1;
+                }
+                else
+                {
+                    matched_networks[netid] = 1;
+                }
+                num_mached_networks++;
+
                 extra << "NIC=[NIC_ID=\"" << nic_id << "\", NETWORK_MODE=\"auto\" , NETWORK_ID=\"" << netid << "\"]";
             }
 
+            if ( num_mached_networks < nics_ids.size())
+            {
+                for (map<int,int>::iterator it = matched_networks.begin(); it != matched_networks.end(); it++)
+                {
+                    net = vnetpool->get(it->first);
+
+                    net->rollback_leases(it->second);
+                }
+                continue;
+            }
 
             //------------------------------------------------------------------
             // Dispatch and update host and DS capacity, and dispatch counters
             //------------------------------------------------------------------
             if (vmpool->dispatch((*k)->oid, hid, dsid, vm->is_resched(), extra.str()) != 0)
             {
+                for (map<int,int>::iterator it = matched_networks.begin(); it != matched_networks.end(); it++)
+                {
+                    net = vnetpool->get(it->first);
+
+                    net->rollback_leases(it->second);
+                }
                 continue;
             }
 

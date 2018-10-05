@@ -168,4 +168,35 @@ private:
     };
 };
 
+class RankNetworkPolicy : public RankPolicy
+{
+public:
+
+    RankNetworkPolicy(VirtualNetworkPoolXML * pool, const string&  dr,float w=1.0):
+            RankPolicy(pool, dr, w){};
+
+    ~RankNetworkPolicy(){};
+
+private:
+
+    const vector<Resource *> get_match_resources(ObjectXML *obj)
+    {
+        VirtualMachineNicXML * nic = dynamic_cast<VirtualMachineNicXML *>(obj);
+
+        return nic->get_match_networks();
+    };
+
+    const string& get_rank(ObjectXML *obj)
+    {
+        VirtualMachineNicXML * nic = dynamic_cast<VirtualMachineNicXML *>(obj);
+
+        if (nic->get_nic_rank().empty())
+        {
+            return default_rank;
+        }
+
+        return nic->get_nic_rank();
+    };
+};
+
 #endif /*RANK_POLICY_H_*/

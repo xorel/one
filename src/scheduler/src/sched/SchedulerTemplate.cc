@@ -217,3 +217,48 @@ string SchedulerTemplate::get_ds_policy() const
 
     return rank;
 }
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+string SchedulerTemplate::get_nics_policy() const
+{
+    int    policy;
+    string rank;
+
+    istringstream iss;
+
+    const  VectorAttribute * sched = get("DEFAULT_NIC_SCHED");
+
+    if (sched == 0)
+    {
+        return "";
+    }
+
+    iss.str(sched->vector_value("POLICY"));
+    iss >> policy;
+
+    switch (policy)
+    {
+        case 0: //Packing
+            rank = "- USED_LEASES";
+        break;
+
+        case 1: //Striping
+            rank = "USED_LEASES";
+        break;
+
+        case 2: //Custom
+            rank = sched->vector_value("RANK");
+        break;
+
+        case 3: //Fixed
+            rank = "PRIORITY";
+        break;
+
+        default:
+            rank = "";
+    }
+
+    return rank;
+}
