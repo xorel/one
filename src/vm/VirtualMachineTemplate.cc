@@ -91,6 +91,8 @@ string& VirtualMachineTemplate::to_xml_short(string& xml) const
     string schd_rank, schd_ds_rank;
     string schd_req, schd_ds_req;
 
+    string user_prio;
+
     vector<const VectorAttribute*> attrs;
 
     if (attributes.empty())
@@ -142,6 +144,12 @@ string& VirtualMachineTemplate::to_xml_short(string& xml) const
         {
             oss << "<SCHED_DS_REQUIREMENTS>" << one_util::escape_xml(schd_ds_req) 
                 << "</SCHED_DS_REQUIREMENTS>";
+        }
+
+        if (get("USER_PRIORITY", user_prio))
+        {
+            oss << "<USER_PRIORITY>" << one_util::escape_xml(user_prio) 
+                << "</USER_PRIORITY>";
         }
 
         if ( get("PUBLIC_CLOUD", attrs) > 0 )
