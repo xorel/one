@@ -219,7 +219,7 @@ void HostRename::batch_rename(int oid)
         return;
     }
 
-    const set<int> & vms = host->get_vm_ids();
+    set<int> vms = host->get_vm_ids();
 
     set<int>::iterator it;
 
@@ -259,7 +259,7 @@ void MarketPlaceRename::batch_rename(int oid)
         return;
     }
 
-    const std::set<int> & apps = market->get_marketapp_ids();
+    std::set<int> apps = market->get_marketapp_ids();
 
     std::set<int>::iterator it;
 
