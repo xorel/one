@@ -101,42 +101,43 @@ void VirtualMachineXML::init_attributes()
 
     // ------------------- NIC REQUIREMENTS -------------------------------------
 
-    vector<string> nics_ids;
-    vector<string> nics_requirement;
-    vector<string> nics_rank;
-
-    xpaths(nics_ids,"/VM/TEMPLATE/NIC[NETWORK_MODE=\"auto\"]/NIC_ID");
-    xpaths(nics_requirement,"/VM/TEMPLATE/NIC[NETWORK_MODE=\"auto\"]/SCHED_REQUIREMENTS");
-    xpaths(nics_rank,"/VM/TEMPLATE/NIC[NETWORK_MODE=\"auto\"]/SCHED_RANK");
-
-    int nic_id;
-    string requirements;
-    string rank;
-
-    for (size_t i = 0; i < nics_ids.size(); i++)
+    if (get_nodes("/VM/TEMPLATE/NIC", nodes) > 0)
     {
-        nic_id       = atoi(nics_ids[i].c_str());
+        int nic_id;
+        string requirements, rank, net_mode;
 
-        nics_ids_auto.insert(nic_id);
+        for ( vector<xmlNodePtr>::iterator it_nodes = nodes.begin(); it_nodes != nodes.end(); it_nodes++)
+        {
+            VirtualMachineTemplate * nic_template = new VirtualMachineTemplate;
 
-        nics[nic_id] = new VirtualMachineNicXML();
+            nic_template->from_xml_node(*it_nodes);
+
+            if ( nic_template->get("NETWORK_MODE", net_mode) && net_mode == "auto" )
+            {
+                nic_template->get("NIC_ID", nic_id);
+
+                nics_ids_auto.insert(nic_id);
+
+                nics[nic_id] = new VirtualMachineNicXML();
+
+                if ( nic_template->get("SCHED_REQUIREMENTS", requirements) )
+                {
+                    nic_requirements[nic_id] = requirements;
+                }
+
+                if ( nic_template->get("SCHED_RANK", rank) )
+                {
+                    nics[nic_id]->add_nic_rank(rank);
+                }
+            }
+
+            delete nic_template;
+        }
+
+        free_nodes(nodes);
     }
 
-    for (size_t i = 0; i < nics_ids.size() && i < nics_requirement.size(); i++)
-    {
-        nic_id       = atoi(nics_ids[i].c_str());
-        requirements = nics_requirement[i];
-
-        nic_requirements[nic_id] = requirements;
-    }
-
-    for (size_t i = 0; i < nics_ids.size() && i < nics_rank.size(); i++)
-    {
-        nic_id       = atoi(nics_ids[i].c_str());
-        rank         = nics_rank[i];
-
-        nics[nic_id]->add_nic_rank(rank);
-    }
+    nodes.clear();
 
     // ---------------- HISTORY HID, DSID, RESCHED & TEMPLATE ------------------
 
