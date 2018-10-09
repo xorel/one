@@ -1675,8 +1675,8 @@ void Scheduler::dispatch()
         if (!dispatched)
         {
             vm->log("Cannot dispatch VM to any Host. Possible reasons: Not "
-                "enough capacity in Host or System DS, or dispatch limit "
-                "reached");
+                "enough capacity in Host or System DS, dispatch limit "
+                "reached, or limit of free leases reached.");
             vmpool->update(vm);
         }
     }
