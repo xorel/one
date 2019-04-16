@@ -87,24 +87,24 @@ if [ `is_disk $SRC_PATH` -eq 1 ]; then
     DST_VG_NAME="vg-one-${DST_DS_SYS_ID}"
     DST_DEV="/dev/${DST_VG_NAME}/${LV_NAME}"
 
-    # for stop + undeploy operation just deactivate the LV
-    if [[ "$LCM_STATE" =~ ^(10|30|41|42)$ ]]; then
-        # deactivate
-        CMD=$(cat <<EOF
-            set -ex -o pipefail
-            if [ -b "${SRC_DEV}" ]; then
-              ${SUDO} ${SYNC}
-              ${SUDO} ${LVSCAN}
-              ${SUDO} ${LVCHANGE} -an "${SRC_DEV}"
-            fi
+    # deactivate
+    CMD=$(cat <<EOF
+        set -ex -o pipefail
+        if [ -b "${SRC_DEV}" ]; then
+          ${SUDO} ${SYNC}
+          ${SUDO} ${LVSCAN}
+          ${SUDO} ${LVCHANGE} -an "${SRC_DEV}"
+        fi
 
-            rm -f "${SRC_DIR}/.host" || :
+        rm -f "${SRC_DIR}/.host" || :
 EOF
 )
-        LOCK="tm-fs_lvm-${SRC_DS_SYS_ID}.lock"
-        exclusive "${LOCK}" 120 ssh_exec_and_log "${SRC_HOST}" "${CMD}" \
-            "Error deactivating disk ${SRC_PATH}"
+    LOCK="tm-fs_lvm-${SRC_DS_SYS_ID}.lock"
+    exclusive "${LOCK}" 120 ssh_exec_and_log "${SRC_HOST}" "${CMD}" \
+        "Error deactivating disk ${SRC_PATH}"
 
+    # for stop + undeploy operation exit here
+    if [[ "$LCM_STATE" =~ ^(10|30|41|42)$ ]]; then
         exit 0
     fi
 
