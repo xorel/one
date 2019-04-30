@@ -315,11 +315,11 @@ int ImagePool::acquire_disk(int               vm_id,
 
         one_util::toupper(type);
 
-        if ( type != "SWAP" && type != "FS" )
-        {
-            error_str = "Unknown disk type " + type;
-            return -1;
-        }
+        /* if ( type != "SWAP" && type != "FS" ) */
+        /* { */
+        /*     error_str = "Unknown disk type " + type; */
+        /*     return -1; */
+        /* } */
 
         long long size;
 
