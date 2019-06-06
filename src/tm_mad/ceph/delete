@@ -153,6 +153,8 @@ else
     RBD_SNAP=""
 fi
 
+PROTECT_SNAP="$( ceph_snap_protect_required )"
+
 #-------------------------------------------------------------------------------
 # Delete the device
 #-------------------------------------------------------------------------------
@@ -169,7 +171,7 @@ else
             rbd_rm_r \$(rbd_top_parent $RBD_SRC)
 
             if [ -n "$RBD_SNAP" ]; then
-                rbd_rm_snap $SRC $RBD_SNAP
+                rbd_rm_snap $SRC $RBD_SNAP $PROTECT_SNAP
             fi
         else
             $RBD rm $RBD_SRC

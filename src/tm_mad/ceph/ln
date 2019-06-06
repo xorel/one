@@ -93,13 +93,15 @@ if [ -n "$CEPH_CONF" ]; then
     RBD="$RBD --conf ${CEPH_CONF}"
 fi
 
+PROTECT_SNAP="$( ceph_snap_protect_required )"
+
 if [ "${TYPE}" = 'FILE' ]; then
     ssh_make_path $DST_HOST $DST_DIR 'ssh'
 
     LN_CMD=$(cat <<EOF
         RBD="${RBD}"
 
-        rbd_rm_snap $SRC_PATH
+        rbd_rm_snap $SRC_PATH $PROTECT_SNAP
 
         set -e -o pipefail
 
@@ -110,7 +112,7 @@ else
     LN_CMD=$(cat <<EOF
         RBD="${RBD}"
 
-        rbd_rm_snap $SRC_PATH
+        rbd_rm_snap $SRC_PATH $PROTECT_SNAP
 EOF
 )
 fi

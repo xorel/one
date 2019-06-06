@@ -157,3 +157,18 @@ function migrate_other
         fi
     done
 }
+
+#--------------------------------------------------------------------------------
+# Query ceph osd and return "no" if the require-min-compat-client
+# is either nautilus or mimic (or higher later).
+# Return "yes" otherwise
+#--------------------------------------------------------------------------------
+ceph_snap_protect_required() {
+    MIN_COMPAT_CLIENT=$(ceph osd get-require-min-compat-client 2>/dev/null)
+    if [ $MIN_COMPAT_CLIENT = 'mimic' -o $MIN_COMPAT_CLIENT = 'nautilus' ]
+    then
+        echo 'no'
+        return 0
+    fi
+    echo 'yes'
+}

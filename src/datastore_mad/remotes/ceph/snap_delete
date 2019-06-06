@@ -84,6 +84,8 @@ if [ -n "$CEPH_CONF" ]; then
     RBD="$RBD --conf ${CEPH_CONF}"
 fi
 
+PROTECT_SNAP="$( ceph_snap_protect_required )"
+
 SNAP_DELETE_CMD=$(cat <<EOF
     RBD="${RBD}"
 
@@ -96,7 +98,7 @@ SNAP_DELETE_CMD=$(cat <<EOF
         exit 1
     fi
 
-    $RBD snap unprotect \${RBD_TGT}@$SNAP_ID
+    [ $PROTECT_SNAP = "yes" ] && $RBD snap unprotect \${RBD_TGT}@$SNAP_ID
     $RBD snap rm \${RBD_TGT}@$SNAP_ID
 
     if [ "\${RBD_TGT}" != "$RBD_SRC" ]; then

@@ -19,12 +19,13 @@
 #  @param $1 the volume
 #--------------------------------------------------------------------------------
 rbd_make_snap() {
+    PROTECT_SNAP=${2:-yes}
     if [ "$(rbd_format $1)" = "2" ]; then
         $RBD info "$1@snap" >/dev/null 2>&1
 
         if [ "$?" != "0" ]; then
             $RBD snap create  "$1@snap"
-            $RBD snap protect "$1@snap"
+            [ $PROTECT_SNAP = "yes" ] && $RBD snap protect  "$1@snap"
         fi
     fi
 }
@@ -37,12 +38,13 @@ rbd_make_snap() {
 rbd_rm_snap() {
     local snap
     snap=${2:-snap}
+    PROTECT_SNAP=${3:-yes}
 
     if [ "$(rbd_format $1)" = "2" ]; then
         $RBD info "$1@$snap" >/dev/null 2>&1
 
         if [ "$?" = "0" ]; then
-            $RBD snap unprotect "$1@$snap"
+            [ $PROTECT_SNAP = "yes" ] && $RBD snap unprotect "$1@$snap"
             $RBD snap rm "$1@$snap"
         fi
     fi
@@ -157,6 +159,7 @@ rbd_rm_r() {
 
     rbd=$1
     rbd_base=${rbd%%@*}
+    PROTECT_SNAP=${2:-yes}
 
     if [ "$rbd" != "$rbd_base" ]; then
         children=$($RBD children $rbd 2>/dev/null)
@@ -165,7 +168,7 @@ rbd_rm_r() {
             rbd_rm_r $child
         done
 
-        $RBD snap unprotect $rbd
+        [ $PROTECT_SNAP = "yes" ] && $RBD snap unprotect $rbd
         $RBD snap rm $rbd
     else
         snaps=$($RBD snap ls $rbd 2>/dev/null| awk 'NR > 1 {print $2}')
@@ -214,4 +217,3 @@ rbd_df_monitor() {
         FREE_MB=$(($free / 1024**2))\n
 EOF
 }
-

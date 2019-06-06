@@ -104,6 +104,8 @@ if [ "${TYPE}" != 'RBD' ]; then
     exit 1
 fi
 
+PROTECT_SNAP="$( ceph_snap_protect_required )"
+
 SNAP_CREATE_CMD=$(cat <<EOF
     set -e -o pipefail
 
@@ -116,7 +118,7 @@ SNAP_CREATE_CMD=$(cat <<EOF
     rbd_check_2 $RBD_DST
 
     $RBD snap create $RBD_DST@$SNAP_ID
-    $RBD snap protect $RBD_DST@$SNAP_ID
+    [ $PROTECT_SNAP = "yes" ] && $RBD snap protect $RBD_DST@$SNAP_ID
 EOF
 )
 
