@@ -2035,11 +2035,11 @@ private:
      *  netowrking updates.
      *    @param context attribute of the VM
      *    @param error string if any
-     *    @param  only_auto boolean to generate context only for vnets 
+     *    @param  only_auto boolean to generate context only for vnets
      *            with NETWORK_MODE = auto
      *    @return 0 on success
      */
-    int generate_network_context(VectorAttribute * context, string& error, 
+    int generate_network_context(VectorAttribute * context, string& error,
             bool only_auto);
 
     /**
