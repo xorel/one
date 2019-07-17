@@ -16,7 +16,7 @@
 # limitations under the License.                                             #
 #--------------------------------------------------------------------------- #
 
-# ln fe:SOURCE host:remote_system_ds/disk.i vmid dsid
+# mvds host:remote_system_ds/disk.i fe:SOURCE vmid dsid
 #   - fe is the front-end hostname
 #   - SOURCE is the path of the disk image in the form DS_BASE_PATH/disk
 #   - host is the target host to deploy the VM
@@ -38,67 +38,39 @@ fi
 
 . $TMCOMMON
 
-DRIVER_PATH=$(dirname $0)
+SRC_PATH="$(arg_path $SRC)"
+SRC_HOST="$(arg_host $SRC)"
+
+DST_HOST="$(arg_host $DST)"
+DST_PATH="$(arg_path $DST)"
+
+SRC_PATH_SNAP="${SRC_PATH}.snap"
+DST_PATH_SNAP="${DST_PATH}.snap"
 
 #-------------------------------------------------------------------------------
-# Set dst path and dir
-#-------------------------------------------------------------------------------
-DST_PATH=`arg_path $DST`
-DST_HOST=`arg_host $DST`
-DST_DIR=`dirname $DST_PATH`
-
-SRC_ARG_PATH=`arg_path $SRC`
-
-DST_DS_PATH="$(dirname $(dirname $(dirname $DST_PATH)))"
-SRC_DS_PATH="$(dirname $(dirname $SRC_ARG_PATH))"
-
-SRC_PATH="${DST_DS_PATH}${SRC_ARG_PATH##$SRC_DS_PATH}"
-SNAP_DIR="${SRC_PATH}.snap"
-SNAP_NAME="$(basename $SNAP_DIR)"
-
-#-------------------------------------------------------------------------------
-# Create DST path
+# Move the image back to the datastore
 #-------------------------------------------------------------------------------
 
-ssh_make_path $DST_HOST $DST_DIR
+log "Moving $SRC to datastore as $DST"
 
-#-------------------------------------------------------------------------------
-# Link (ln) SRC into DST
-#-------------------------------------------------------------------------------
-log "Linking $SRC_PATH in $DST"
-
-type="$(file -b --mime-type $SRC_PATH)"
-
-if [ "$type" == "application/x-iso9660-image" ]; then
-    CMD="ln -sf ${SRC_PATH} ${DST_PATH}"
-else
-    CMD=$(cat <<EOT
-set -ex -o pipefail
-
-mkdir -p "${SNAP_DIR}"
-
-if [ ! -L "${SNAP_DIR}/${SNAP_NAME}" ]; then
-    ln -s "${SNAP_DIR}" "${SNAP_DIR}/${SNAP_NAME}"
-fi
-
-SNAP="\$(ls ${SNAP_DIR} | grep '^[[:digit:]]*$' | sort -n | tail -n 1 || :)"
-
-if [ -z "\${SNAP}" ]; then
-    SNAP=0
-    ln -sf "$SRC_PATH" "$SNAP_DIR/0"
-fi
-
-rm -f "${DST_PATH}"
-
-ln -sf "$SNAP_DIR/\$SNAP" "$DST_PATH"
-
-rm -rf "${DST_PATH}.snap"
-
-ln -sf "$SNAP_DIR" "${DST_PATH}.snap"
-EOT
+SNAP_ID_GET_CMD=$(cat << EOF
+    if [ -L "$SRC_PATH" ]; then SNAP_LINK=\$(readlink $SRC_PATH); basename \$SNAP_LINK; fi
+EOF
 )
+
+if $SSH $SRC_HOST ls ${SRC_PATH_SNAP} >/dev/null 2>&1; then
+    exec_and_log "rsync -r -l --delete ${SRC_HOST}:${SRC_PATH_SNAP}/ ${DST_PATH_SNAP}"
+
+    SNAP_ID=$($SSH $SRC_HOST "$SNAP_ID_GET_CMD")
+    # $SRC_PATH disk is symlink create similar in IMG DS
+    if [ -n "$SNAP_ID" ]; then
+        rm $DST_PATH
+        ln -s $DST_PATH_SNAP/$SNAP_ID $DST_PATH
+    else
+        $SCP $SRC $DST_PATH
+    fi
+else
+    $SCP $SRC $DST_PATH
 fi
-
-ssh_exec_and_log $DST_HOST "$CMD" "Error linking $SRC to $DST"
-
+    hup_collectd $SRC_HOST
 exit 0
