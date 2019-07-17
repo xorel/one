@@ -16,16 +16,18 @@
 # limitations under the License.                                             #
 #--------------------------------------------------------------------------- #
 
-# clone fe:SOURCE host:remote_system_ds/disk.i size
+# cpds host:remote_system_ds/disk.i fe:SOURCE snapid vmid dsid
 #   - fe is the front-end hostname
 #   - SOURCE is the path of the disk image in the form DS_BASE_PATH/disk
 #   - host is the target host to deploy the VM
 #   - remote_system_ds is the path for the system datastore in the host
+#   - snapid is the snapshot id. "-1" for none
 
 SRC=$1
 DST=$2
-VM_ID=$3
-DS_ID=$4
+SNAP_ID=$3
+VM_ID=$4
+DS_ID=$5
 
 #--------------------------------------------------------------------------------
 
@@ -41,62 +43,50 @@ DRIVER_PATH=$(dirname $0)
 
 source $TMCOMMON
 source ${DRIVER_PATH}/../../etc/datastore/ceph/ceph.conf
+source ${DRIVER_PATH}/../../etc/vmm/kvm/kvmrc
 
 CEPH_UTILS=${DRIVER_PATH}/../../datastore/ceph/ceph_utils.sh
 
 #-------------------------------------------------------------------------------
-# Compute the destination image name
+# Set dst path and dir
 #-------------------------------------------------------------------------------
 
-DST_HOST=`arg_host $DST`
-
 SRC_PATH=`arg_path $SRC`
-DST_PATH=`arg_path $DST`
-
-DST_DIR=`dirname $DST_PATH`
-
-DISK_ID=$(echo $DST|awk -F. '{print $NF}')
-RBD_DST="${SRC_PATH}-${VM_ID}-${DISK_ID}"
-DST_DS_ID=$(echo $DST | sed s#//*#/#g | awk -F/ '{print $(NF-2)}')
+SRC_HOST=`arg_host $SRC`
+RBD_SRC=`arg_path $SRC`
 
 #-------------------------------------------------------------------------------
 # Get Image information
 #-------------------------------------------------------------------------------
+
+DISK_ID=$(echo "$RBD_SRC" | $AWK -F. '{print $NF}')
 
 XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
 
 unset i j XPATH_ELEMENTS
 
 while IFS= read -r -d '' element; do
-        XPATH_ELEMENTS[i++]="$element"
-done < <(onevm show -x $VM_ID| $XPATH  \
+    XPATH_ELEMENTS[i++]="$element"
+done < <(onevm show -x $VM_ID| $XPATH \
+                    /VM/DEPLOY_ID \
+                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/SOURCE \
+                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/CLONE \
                     /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/CEPH_USER \
                     /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/CEPH_KEY \
                     /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/CEPH_CONF \
-                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/SIZE \
-                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/ORIGINAL_SIZE )
+                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/TYPE )
 
+DEPLOY_ID="${XPATH_ELEMENTS[j++]}"
+RBD_SRC="${XPATH_ELEMENTS[j++]}"
+CLONE="${XPATH_ELEMENTS[j++]}"
 CEPH_USER="${XPATH_ELEMENTS[j++]}"
 CEPH_KEY="${XPATH_ELEMENTS[j++]}"
 CEPH_CONF="${XPATH_ELEMENTS[j++]}"
-SIZE="${XPATH_ELEMENTS[j++]}"
-ORIGINAL_SIZE="${XPATH_ELEMENTS[j++]}"
+TYPE="${XPATH_ELEMENTS[j++]}"
+
 
 #-------------------------------------------------------------------------------
-# Get Datastore information
-#-------------------------------------------------------------------------------
-
-unset i j XPATH_ELEMENTS
-
-while IFS= read -r -d '' element; do
-        XPATH_ELEMENTS[i++]="$element"
-done < <(onedatastore show -x $DST_DS_ID | $XPATH \
-                    /DATASTORE/TEMPLATE/EC_POOL_NAME)
-
-EC_POOL_NAME="${XPATH_ELEMENTS[j++]}"
-
-#-------------------------------------------------------------------------------
-# Clone the image and create @snap if it does not exists
+# Copy Image back to the datastore
 #-------------------------------------------------------------------------------
 
 if [ -n "$CEPH_USER" ]; then
@@ -111,31 +101,28 @@ if [ -n "$CEPH_CONF" ]; then
     RBD="$RBD --conf ${CEPH_CONF}"
 fi
 
-if [ -n "$EC_POOL_NAME" ]; then
-    EC_POOL_OPT="--data-pool ${EC_POOL_NAME}"
+if [ "$RBD_FORMAT" = "2" ]; then
+    FORMAT_OPT="--image-format 2"
 fi
 
-CLONE_CMD=$(cat <<EOF
-    RBD="${RBD}"
+if [ "$SNAP_ID" != "-1" ]; then
+    error_message "$script_name: Operation not supported on disk type ${TYPE} with snapshots"
+    exit 1
+fi
 
-    $RBD info $RBD_DST >/dev/null 2>&1 && exit 0
-
-    rbd_make_snap $SRC_PATH
-
-    set -e -o pipefail
-
-    if [ "\$(rbd_format $SRC_PATH)" = "2" ]; then
-        $RBD ${EC_POOL_OPT} clone "$SRC_PATH@snap" $RBD_DST
+COPY_CMD=$(cat <<EOF
+    if virsh -c $LIBVIRT_URI domfsfreeze $DEPLOY_ID ; then
+        trap "virsh -c $LIBVIRT_URI domfsthaw $DEPLOY_ID" EXIT TERM INT HUP
+    elif virsh -c $LIBVIRT_URI suspend $DEPLOY_ID; then
+        trap "virsh -c $LIBVIRT_URI resume $DEPLOY_ID" EXIT TERM INT HUP
     else
-        $RBD copy $SRC_PATH $RBD_DST
+        echo "Could not domfsfreeze or suspend domain" >&2
+        exit 1
     fi
 
-    if [ -n "$ORIGINAL_SIZE" -a "$SIZE" -gt "$ORIGINAL_SIZE" ]; then
-        $RBD resize $RBD_DST --size $SIZE
-    fi
+    $RBD import $FORMAT_OPT $SRC_PATH $DST
 EOF
 )
 
-ssh_exec_and_log_stdin "$DST_HOST" "$CLONE_CMD" "$CEPH_UTILS" \
-                 "Error cloning $SRC_PATH to $RBD_DST in $DST_HOST"
-exit 0
+ssh_exec_and_log_stdin "$SRC_HOST" "$COPY_CMD" "$CEPH_UTILS" \
+                 "Error cloning $RBD_DST to $DST in $SRC_HOST"

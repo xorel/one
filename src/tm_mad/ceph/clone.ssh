@@ -16,7 +16,7 @@
 # limitations under the License.                                             #
 #--------------------------------------------------------------------------- #
 
-# clone fe:SOURCE host:remote_system_ds/disk.i size
+# clone.ssh fe:SOURCE host:remote_system_ds/disk.i size
 #   - fe is the front-end hostname
 #   - SOURCE is the path of the disk image in the form DS_BASE_PATH/disk
 #   - host is the target host to deploy the VM
@@ -57,7 +57,6 @@ DST_DIR=`dirname $DST_PATH`
 
 DISK_ID=$(echo $DST|awk -F. '{print $NF}')
 RBD_DST="${SRC_PATH}-${VM_ID}-${DISK_ID}"
-DST_DS_ID=$(echo $DST | sed s#//*#/#g | awk -F/ '{print $(NF-2)}')
 
 #-------------------------------------------------------------------------------
 # Get Image information
@@ -74,7 +73,7 @@ done < <(onevm show -x $VM_ID| $XPATH  \
                     /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/CEPH_KEY \
                     /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/CEPH_CONF \
                     /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/SIZE \
-                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/ORIGINAL_SIZE )
+                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/ORIGINAL_SIZE)
 
 CEPH_USER="${XPATH_ELEMENTS[j++]}"
 CEPH_KEY="${XPATH_ELEMENTS[j++]}"
@@ -83,20 +82,7 @@ SIZE="${XPATH_ELEMENTS[j++]}"
 ORIGINAL_SIZE="${XPATH_ELEMENTS[j++]}"
 
 #-------------------------------------------------------------------------------
-# Get Datastore information
-#-------------------------------------------------------------------------------
-
-unset i j XPATH_ELEMENTS
-
-while IFS= read -r -d '' element; do
-        XPATH_ELEMENTS[i++]="$element"
-done < <(onedatastore show -x $DST_DS_ID | $XPATH \
-                    /DATASTORE/TEMPLATE/EC_POOL_NAME)
-
-EC_POOL_NAME="${XPATH_ELEMENTS[j++]}"
-
-#-------------------------------------------------------------------------------
-# Clone the image and create @snap if it does not exists
+# Create @snap and export it
 #-------------------------------------------------------------------------------
 
 if [ -n "$CEPH_USER" ]; then
@@ -111,27 +97,24 @@ if [ -n "$CEPH_CONF" ]; then
     RBD="$RBD --conf ${CEPH_CONF}"
 fi
 
-if [ -n "$EC_POOL_NAME" ]; then
-    EC_POOL_OPT="--data-pool ${EC_POOL_NAME}"
-fi
+
+ssh_make_path $DST_HOST $DST_DIR 'ssh'
 
 CLONE_CMD=$(cat <<EOF
     RBD="${RBD}"
-
-    $RBD info $RBD_DST >/dev/null 2>&1 && exit 0
 
     rbd_make_snap $SRC_PATH
 
     set -e -o pipefail
 
     if [ "\$(rbd_format $SRC_PATH)" = "2" ]; then
-        $RBD ${EC_POOL_OPT} clone "$SRC_PATH@snap" $RBD_DST
+        $RBD export "$SRC_PATH@snap" $DST_PATH
     else
-        $RBD copy $SRC_PATH $RBD_DST
+        $RBD export $SRC_PATH $DST_PATH
     fi
 
     if [ -n "$ORIGINAL_SIZE" -a "$SIZE" -gt "$ORIGINAL_SIZE" ]; then
-        $RBD resize $RBD_DST --size $SIZE
+        qemu-img resize ${DST_PATH} ${SIZE}M
     fi
 EOF
 )
