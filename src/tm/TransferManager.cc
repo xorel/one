@@ -2081,9 +2081,12 @@ int TransferManager::snapshot_transfer_command(
         VirtualMachine * vm, const char * snap_action, ostream& xfr)
 {
     string tm_mad;
+    string tsys;
+    string tm_mad_system;
     int    ds_id;
     int    disk_id;
     int    snap_id;
+    VirtualMachineDisk * disk;
 
     if (vm->get_snapshot_disk(ds_id, tm_mad, disk_id, snap_id) == -1)
     {
@@ -2092,8 +2095,18 @@ int TransferManager::snapshot_transfer_command(
         return -1;
     }
 
-    //SNAP_CREATE tm_mad host:remote_system_dir/disk.0 snapid vmid dsid
-    xfr << snap_action << " "
+    disk = vm->get_disk(disk_id);
+    if (disk != 0)
+    {
+        tsys = disk->vector_value("TM_MAD_SYSTEM");
+        if (!tsys.empty())
+        {
+            tm_mad_system = "." + tsys;
+        }
+    }
+
+    //SNAP_CREATE(.tm_mad_system) tm_mad host:remote_system_dir/disk.0 snapid vmid dsid
+    xfr << snap_action << tm_mad_system << " "
         << tm_mad << " "
         << vm->get_hostname() << ":"
         << vm->get_system_dir() << "/disk." << disk_id << " "
