@@ -283,6 +283,21 @@ class OneVMHelper < OpenNebulaHelper::OneHelper
         [0, ids[0].to_i]
     end
 
+    def retrieve_disk_snapshot_id(vm_id, id)
+        vm = retrieve_resource(vm_id)
+        vm.info
+        puts "DEBUG: yes running: retrieve_disk_snapshot_id\n"
+
+        if !/\A\d+\z/.match(id)
+            ids = vm.retrieve_elements("/VM/SNAPSHOTS/SNAPSHOT[NAME='#{id}']/ID")
+            return [-1, "#{id} not found or duplicated"] if ids.nil? || ids.size > 1
+        else
+            return [0, id.to_i]
+        end
+
+        [0, ids[0].to_i]
+    end
+
     def format_pool(options)
         config_file = self.class.table_conf
 
