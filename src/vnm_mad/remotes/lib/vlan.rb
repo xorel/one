@@ -155,10 +155,41 @@ module VNMMAD
                                     "link set #{@nic[:bridge]} up")
         end
 
-        # reads bridge_conf and return str with switches
+        # Reads bridge_conf & ip_bridge_conf and return str with switches
+        # It reads both
+        #   * brctl options from :bridge_conf section
+        #   * ip-route2 bridge options from ip_bridge_conf section
+        #
+        # It tries to translate the options from brctl to ip-route2 format
+        # for the backward compatibility
         def list_bridge_options
-            bridge_options = ''
-            @nic[:bridge_conf].each do |option, value|
+            bridge_options = @nic[:bridge_conf]
+
+            # options transform table from brctl to ip-route2
+            brctl_to_ipbridge = {
+                :setageing     => :ageing_time,
+                :sethello      => :hello_time,
+                :setmaxage     => :max_age,
+                :stp           => :stp_state,
+                :setbridgeprio => :priority,
+                :setfd         => :forward_delay
+            }
+
+            # translate bridge_options to ip_bridge_options
+            ip_bridge_options = {}
+            bridge_options.each do |brctl_opt, brctl_val|
+                next if ! brctl_to_ipbridge.include? brctl_opt
+
+                ip_bridge_opt = brctl_to_ipbridge[brctl_opt]
+
+                ip_bridge_options[ip_bridge_opt] = brctl_val
+            end
+
+            # merge, conf section `:ip_bridge_conf` has higher priority
+            ip_bridge_options.merge!(@nic[:ip_bridge_conf])
+
+            bridge_options_str = ""
+            ip_bride_options.each do |option, value|
                 case value
                 when true
                     value = '1'
@@ -166,10 +197,10 @@ module VNMMAD
                     value = '0'
                 end
 
-                bridge_options << "#{option} #{value} "
+                bridge_options_str << "#{option} #{value} "
             end
-            
-            bridge_options.strip
+
+            bridge_options_str.strip
         end
 
         # Get hypervisor bridges
