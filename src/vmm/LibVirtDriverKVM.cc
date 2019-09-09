@@ -1223,6 +1223,16 @@ int LibVirtDriver::deployment_description_kvm(
 
             fname << vm->get_system_dir() << "/disk." << disk_id;
 
+			if ( !machine.empty() )
+			{
+				std::size_t found = machine.find("q35");
+				if ( found != std::string::npos && target[0] == 'h' && target[1] == 'd')
+				{
+					target[0] = 's';
+				}
+			}
+
+
             file << "\t\t<disk type='file' device='cdrom'>\n"
                  << "\t\t\t<source file="
                      << one_util::escape_xml_attr(fname.str())  << "/>\n"

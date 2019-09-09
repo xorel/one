@@ -561,7 +561,7 @@ void VirtualMachineDisk::set_types(const string& ds_name)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 #define XML_DISK_ATTR(Y,X) ( Y << "<" << X << ">" << \
-        one_util::escape_xml(vector_value(X)) << "</" << X << ">") 
+        one_util::escape_xml(vector_value(X)) << "</" << X << ">")
 
 void VirtualMachineDisk::to_xml_short(std::ostringstream& oss) const
 {
