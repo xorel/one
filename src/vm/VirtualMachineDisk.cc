@@ -561,7 +561,7 @@ void VirtualMachineDisk::set_types(const string& ds_name)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 #define XML_DISK_ATTR(Y,X) ( Y << "<" << X << ">" << \
-        one_util::escape_xml(vector_value(X)) << "</" << X << ">") 
+        one_util::escape_xml(vector_value(X)) << "</" << X << ">")
 
 void VirtualMachineDisk::to_xml_short(std::ostringstream& oss) const
 {
@@ -740,7 +740,7 @@ void VirtualMachineDisks::assign_disk_targets(
 
 int VirtualMachineDisks::get_images(int vm_id, int uid, const std::string& tsys,
         vector<Attribute *> disks, VectorAttribute * vcontext,
-        std::string& error_str)
+		const std::string& machine, std::string& error_str)
 {
     Nebula&    nd    = Nebula::instance();
     ImagePool* ipool = nd.get_ipool();
@@ -873,7 +873,44 @@ int VirtualMachineDisks::get_images(int vm_id, int uid, const std::string& tsys,
 
             if (dev_prefix.empty())
             {
-                dev_prefix = ipool->default_cdrom_dev_prefix();
+				ofstream myfile;
+				myfile.open ("/tmp/debug.log");
+
+				// if machine contains -q35- substr erase 'hd' prefix
+                std::size_t found = machine.find("-q35-");
+				if ( found != std::string::npos )
+                {
+
+					myfile << "DEBUG FOUND q35 in machine" << "\n";
+
+					std::string dev_prefix_order = ipool->default_cdrom_dev_prefix_order();
+					std::vector<std::string> prefixes;
+
+					one_util::split(dev_prefix_order, ',', prefixes);
+
+					for (auto it = prefixes.begin() ; it != prefixes.end(); ++it)
+					{
+						// prefix = action = one_util::trim(*it)
+
+						//delete *it;
+						if (*it == "hd")
+						{
+							myfile << "DEBUG DELETING " << *it << "\n";
+							it = prefixes.erase(it);
+						}
+
+					}
+
+					// TODO size > 1?
+                    dev_prefix = prefixes.front();
+                }
+                else
+                {
+					myfile << "DEBUG _NOT_ FOUND q35 in machine" << "\n";
+                    dev_prefix = ipool->default_cdrom_dev_prefix();
+                }
+
+				myfile.close();
             }
 
             cdrom_disks.push(make_pair(dev_prefix, &context));

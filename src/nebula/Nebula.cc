@@ -661,6 +661,7 @@ void Nebula::start(bool bootstrap_only)
         string  image_type;
         string  device_prefix;
         string  cd_dev_prefix;
+        string  cd_dev_prefix_order;
 
         vector<const VectorAttribute *> image_hooks;
         vector<const SingleAttribute *> img_restricted_attrs;
@@ -670,6 +671,7 @@ void Nebula::start(bool bootstrap_only)
         nebula_configuration->get("DEFAULT_IMAGE_TYPE", image_type);
         nebula_configuration->get("DEFAULT_DEVICE_PREFIX", device_prefix);
         nebula_configuration->get("DEFAULT_CDROM_DEVICE_PREFIX", cd_dev_prefix);
+        nebula_configuration->get("DEFAULT_CDROM_DEVICE_PREFIX_ORDER", cd_dev_prefix_order);
 
         nebula_configuration->get("IMAGE_HOOK", image_hooks);
 
@@ -678,7 +680,7 @@ void Nebula::start(bool bootstrap_only)
         nebula_configuration->get("INHERIT_IMAGE_ATTR", inherit_image_attrs);
 
         ipool = new ImagePool(logdb, image_type, device_prefix, cd_dev_prefix,
-            img_restricted_attrs, image_hooks, remotes_location,
+            cd_dev_prefix_order, img_restricted_attrs, image_hooks, remotes_location,
             inherit_image_attrs);
 
         nebula_configuration->get("INHERIT_DATASTORE_ATTR", inherit_ds_attrs);

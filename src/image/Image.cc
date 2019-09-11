@@ -145,7 +145,8 @@ int Image::insert(SqlDB *db, string& error_str)
             {
                 if (type == CDROM)
                 {
-                    dev_prefix = ImagePool::default_cdrom_dev_prefix();
+                    // TODO: Fix here
+					dev_prefix = ImagePool::default_cdrom_dev_prefix();
                 }
                 else
                 {
@@ -529,6 +530,7 @@ void Image::disk_attribute(VirtualMachineDisk *    disk,
         {
             if ( type == CDROM )
             {
+                // TODO: Fix here
                 dev_prefix = ImagePool::default_cdrom_dev_prefix();
             }
             else

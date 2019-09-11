@@ -45,6 +45,7 @@ public:
             const string&                    __default_type,
             const string&                    __default_dev_prefix,
             const string&                    __default_cdrom_dev_prefix,
+            const string&                    __default_cdrom_dev_prefix_order,
             vector<const SingleAttribute *>& restricted_attrs,
             vector<const VectorAttribute *>& hook_mads,
             const string&                    remotes_location,
@@ -165,7 +166,7 @@ public:
     int dump(string& oss, const string& where, const string& limit,
             bool desc)
     {
-        return PoolSQL::dump(oss, "IMAGE_POOL", "body", Image::table, where, limit, 
+        return PoolSQL::dump(oss, "IMAGE_POOL", "body", Image::table, where, limit,
             desc);
     }
 
@@ -223,6 +224,11 @@ public:
         return _default_cdrom_dev_prefix;
     };
 
+    static const string& default_cdrom_dev_prefix_order()
+    {
+        return _default_cdrom_dev_prefix_order;
+    };
+
 private:
     //--------------------------------------------------------------------------
     // Configuration Attributes for Images
@@ -242,6 +248,11 @@ private:
      * Default device prefix for cdrom disks
      **/
     static string _default_cdrom_dev_prefix;
+
+    /**
+     * Default device prefix order for cdrom disks
+     **/
+    static string _default_cdrom_dev_prefix_order;
 
     /**
      * Image attributes to be inherited into the VM disk

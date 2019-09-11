@@ -780,6 +780,11 @@ int VirtualMachine::insert(SqlDB * db, string& error_str)
 
     ostringstream oss;
 
+    // DEBUG
+    string debug_xml;
+    ofstream myfile1;
+    ofstream myfile2;
+
     // ------------------------------------------------------------------------
     // Set a name if the VM has not got one and VM_ID
     // ------------------------------------------------------------------------
@@ -1069,6 +1074,18 @@ int VirtualMachine::insert(SqlDB * db, string& error_str)
     {
         goto error_rollback;
     }
+
+    // DEBUG HERE
+    user_obj_template->to_xml(debug_xml);
+    myfile1.open ("/tmp/debug1.log");
+    myfile1 << debug_xml << "\n";
+    myfile1.close();
+
+    obj_template->to_xml(debug_xml);
+    myfile2.open ("/tmp/debug2.log");
+    myfile2 << debug_xml << "\n";
+    myfile2.close();
+    // DEBUG HERE
 
     // ------------------------------------------------------------------------
     // Insert the VM
@@ -3207,7 +3224,16 @@ int VirtualMachine::get_disk_images(string& error_str)
         obj_template->add("TM_MAD_SYSTEM", tm_mad_sys);
     }
 
-    return disks.get_images(oid, uid, tm_mad_sys, adisks, context, error_str);
+	std::string machine;
+
+	VectorAttribute * os = obj_template->get("OS");
+	if ( os != 0 )
+	{
+		machine = os->vector_value("MACHINE");
+	}
+
+    return disks.get_images(oid, uid, tm_mad_sys, adisks, context,
+			                machine, error_str);
 }
 
 /* -------------------------------------------------------------------------- */

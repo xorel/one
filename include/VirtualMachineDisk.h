@@ -514,7 +514,7 @@ public:
      */
     int get_images(int vm_id, int uid, const std::string& tm_mad_sys,
             vector<Attribute *> disks, VectorAttribute * context,
-            std::string& error_str);
+            const std::string& machine, std::string& error_str);
 
     /**
      *  Release the images in the disk set
