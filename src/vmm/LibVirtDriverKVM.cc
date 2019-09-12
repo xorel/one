@@ -335,6 +335,42 @@ static void vtopol(ofstream& file, const VectorAttribute * topology,
     }
 }
 
+/**
+ *  Returns disk bus based on this table:
+ *         \ prefix   hd     sd             vd
+ *  chipset \
+ *  pc-q35-*          sata   [sd_default]   virtio
+ *  (other)           ide    [sd_default]   virtio
+ *
+ *  sd_default - SD_DEVICE_BUS value from vmm_exec_kvm.conf/template
+ *               'sata' or 'scsi'
+ */
+static string get_disk_bus(std::string &machine, std::string &target,
+        std::string &sd_default)
+{
+    std::string prefix = "__";
+
+    prefix[0] = target[0];
+    prefix[1] = target[1];
+
+    if (prefix == "sd")
+    {
+        return sd_default;
+    }
+
+    if (prefix == "vd")
+    {
+        return "virtio";
+    }
+
+    std::size_t found = machine.find("q35");
+    if (found != std::string::npos)
+    {
+        return "sata";
+    }
+    return "ide";
+}
+
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
@@ -516,6 +552,10 @@ int LibVirtDriver::deployment_description_kvm(
 
     std::string numa_tune = "";
     std::string mbacking  = "";
+    std::string sd_bus;
+    std::string disk_bus;
+
+    get_default("SD_DEVICE_BUS", sd_bus);
 
     string  vm_xml;
 
@@ -1073,7 +1113,16 @@ int LibVirtDriver::deployment_description_kvm(
 
         // ---- target device to map the disk ----
 
-        file << "\t\t\t<target dev=" << one_util::escape_xml_attr(target) << "/>\n";
+        file << "\t\t\t<target dev=" << one_util::escape_xml_attr(target);
+
+        disk_bus = get_disk_bus(machine, target, sd_bus);
+        if (!disk_bus.empty())
+        {
+             file << " bus="<< one_util::escape_xml_attr(
+                     get_disk_bus(machine, target, sd_bus));
+        }
+        file <<"/>\n";
+
 
         // ---- boot order for this device ----
 
@@ -1226,8 +1275,15 @@ int LibVirtDriver::deployment_description_kvm(
             file << "\t\t<disk type='file' device='cdrom'>\n"
                  << "\t\t\t<source file="
                      << one_util::escape_xml_attr(fname.str())  << "/>\n"
-                 << "\t\t\t<target dev="
-                     << one_util::escape_xml_attr(target) << "/>\n"
+                 << "\t\t\t<target dev=" << one_util::escape_xml_attr(target);
+
+            if (!disk_bus.empty())
+            {
+                 file << " bus="<< one_util::escape_xml_attr(
+                         get_disk_bus(machine, target, sd_bus));
+            }
+
+            file <<"/>\n"
                  << "\t\t\t<readonly/>\n"
                  << "\t\t\t<driver name='qemu' type='raw'/>\n"
                  << "\t\t</disk>\n";
