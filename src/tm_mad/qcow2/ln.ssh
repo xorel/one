@@ -48,8 +48,8 @@ DRIVER_PATH=$(dirname $0)
 #-------------------------------------------------------------------------------
 DST_HOST=`arg_host $DST`          # centos7-ev-kvm-qcow2-ssh-5-9-90-1713f-2.test
 DST_PATH=`arg_path $DST`          # /var/lib/one//datastores/0/5/disk.0
-DST_FILE=`basename $DST_PATH`     # disk.0
 DST_SNAP_DIR=${DST_PATH}.snap     # /var/lib/one//datastores/0/5/disk.0.snap
+DST_FILE=`basename $DST_PATH`     # disk.0
 DST_DIR=`dirname $DST_PATH`       # /var/lib/one//datastores/0/5
 
 SRC_HOST=`arg_host $SRC`          # centos7-ev-kvm-qcow2-ssh-5-9-90-1713f-0.test
@@ -70,14 +70,20 @@ log "Copying $SRC_PATH in $DST"
 type="$(file -b --mime-type $SRC_PATH)"
 
 if [ "$type" == "application/x-iso9660-image" ]; then
-    exec_and_log "scp ${SRC_PATH} ${DST_PATH}" "Error copying ${SRC_PATH} to ${DST_PATH}"
+    exec_and_log "$SCP ${SRC_PATH} ${DST_PATH}" "Error copying ${SRC_PATH} to ${DST_PATH}"
 else
     if [ -d ${SRC_SNAP_DIR} ]; then
-        SCP_CMD="scp ${SRC_HOST}:${SRC_SNAP_DIR}/[0-9]\* ."
+        SCP_CMD="$SCP ${SRC_HOST}:${SRC_SNAP_DIR}/[0-9]\* ."
     else
-        SCP_CMD="scp ${SRC_HOST}:${SRC_PATH} 0"
+        SCP_CMD="$SCP ${SRC_HOST}:${SRC_PATH} 0"
     fi
 
+    # Following command performs following
+    # - create .snap directory in destination
+    # - copies (SCP) all existing  snapshot there, or the image as snap 0
+    # - creates symlink `disk.0.snap -> .`, used internally by qcow2 format
+    # - rebase all snapshots to point the backing_file locally
+    # - symlink to the latest snapshot, i.e: disk.0 -> disk.0.snap/1
     CMD=$(cat <<EOT
 set -ex -o pipefail
 
@@ -88,16 +94,15 @@ $SCP_CMD
 ln -sf "." "${DST_FILE}.snap"
 
 for SNAP_ID in \$(ls [0-9]*); do
-    P=\$(pwd)
-    set +o pipefail
-    BACKING_PATH=\$(qemu-img info -U \$SNAP_ID | grep 'backing file:' | awk '{print \$3}')
-    set -o pipefail
-    if [ -n "\${BACKING_PATH}" ]; then
-        BACKING_FILE=\$(basename \${BACKING_PATH})
+    INFO=\$(qemu-img info -U --output=json \$SNAP_ID)
+
+    if [[ \$INFO =~ "backing-filename" ]]; then
+        BACKING_FILE=\${INFO/*backing-filename\": \"/}
+        BACKING_FILE=\${BACKING_FILE/\"*/}
+        BACKING_FILE=\$(basename \${BACKING_FILE})
         qemu-img rebase -f qcow2 -u -b "${DST_FILE}.snap/\$BACKING_FILE" \$SNAP_ID
     fi
 done
-
 
 SNAP="\$(ls | grep '^[[:digit:]]*$' | sort -n | tail -n 1 || :)"
 cd ..
