@@ -73,17 +73,17 @@ if [ "$type" == "application/x-iso9660-image" ]; then
     exec_and_log "$SCP ${SRC_PATH} ${DST_PATH}" "Error copying ${SRC_PATH} to ${DST_PATH}"
 else
     if [ -d ${SRC_SNAP_DIR} ]; then
-        SCP_CMD="$SCP ${SRC_HOST}:${SRC_SNAP_DIR}/[0-9]\* ."
+        SCP_CMD="$RSYNC -a --no-links -e ssh ${SRC_HOST}:${SRC_SNAP_DIR}/[0-9]\* ."
     else
         SCP_CMD="$SCP ${SRC_HOST}:${SRC_PATH} 0"
     fi
 
-    # Following command performs following
+    # The CMD performs following
     # - create .snap directory in destination
-    # - copies (SCP) all existing  snapshot there, or the image as snap 0
+    # - copy (RSYNC) all existing snapshot there, or the main image file as snap 0
     # - creates symlink `disk.0.snap -> .`, used internally by qcow2 format
     # - rebase all snapshots to point the backing_file locally
-    # - symlink to the latest snapshot, i.e: disk.0 -> disk.0.snap/1
+    # - symlink to the latest snapshot, i.e: `disk.0 -> disk.0.snap/1`
     CMD=$(cat <<EOT
 set -ex -o pipefail
 
@@ -93,7 +93,7 @@ cd "${DST_SNAP_DIR}"
 $SCP_CMD
 ln -sf "." "${DST_FILE}.snap"
 
-for SNAP_ID in \$(ls [0-9]*); do
+for SNAP_ID in \$(find * -maxdepth 0 -type f -print); do
     INFO=\$(qemu-img info -U --output=json \$SNAP_ID)
 
     if [[ \$INFO =~ "backing-filename" ]]; then
