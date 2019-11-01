@@ -83,13 +83,13 @@ ORIGINAL_SIZE="${XPATH_ELEMENTS[j++]}"
 
 SCP_CMD=$(cat << EOF
     set -e -o pipefail
-
+    rm -rf $DST_PATH_SNAP
     mkdir -p $DST_PATH_SNAP
     $SCP $SRC $DST_PATH_SNAP/0
-
+    rm -f $DST_PATH
     cd $DST_PATH_SNAP
-    ln -s . $DST_PATH_SNAP/$DST_FILE.snap
-    ln -s $DST_FILE.snap/0 $DST_PATH
+    ln -sf . $DST_FILE.snap
+    ln -sf $DST_FILE.snap/0 $DST_PATH
 
 EOF
 )
@@ -105,4 +105,3 @@ if [ -n "$ORIGINAL_SIZE" -a "$SIZE" -gt "$ORIGINAL_SIZE" ]; then
 fi
 
 hup_collectd $DST_HOST
-
