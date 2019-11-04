@@ -52,14 +52,10 @@ unset i j XPATH_ELEMENTS
 while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
 done < <(onevm show -x $VMID| $XPATH \
-                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/SOURCE \
-                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/CLONE \
                     /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/TARGET \
                     /VM/DEPLOY_ID \
                     '%m%/VM/TEMPLATE/DISK/TARGET')
 
-DISK_SRC="${XPATH_ELEMENTS[j++]}"
-CLONE="${XPATH_ELEMENTS[j++]}"
 TARGET="${XPATH_ELEMENTS[j++]}"
 DEPLOY_ID="${XPATH_ELEMENTS[j++]}"
 ALL_DISKS="${XPATH_ELEMENTS[j++]}"
@@ -67,7 +63,6 @@ ALL_DISKS="${XPATH_ELEMENTS[j++]}"
 SYSTEM_DS_PATH=$(dirname ${SRC_PATH})
 
 SYSTEM_DS_DISK_PATH="${SYSTEM_DS_PATH}/disk.${DISK_ID}"
-SYSTEM_DS_DISK_PATH_SHORT="disk.${DISK_ID}"
 
 DISK_PATH="${SYSTEM_DS_DISK_PATH}"
 DISK_PATH_SHORT="$(basename ${SYSTEM_DS_DISK_PATH})"
@@ -162,4 +157,3 @@ EOT
 
 ssh_exec_and_log "${SRC_HOST}" "${CMD}" \
                  "Error creating snapshot ${SNAP_PATH}"
-

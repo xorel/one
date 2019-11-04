@@ -44,23 +44,10 @@ SRC_HOST=$(arg_host $SRC)
 
 DISK_ID=$(basename ${SRC} | cut -d. -f2)
 
-XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
-
-unset i j XPATH_ELEMENTS
-
-while IFS= read -r -d '' element; do
-    XPATH_ELEMENTS[i++]="$element"
-done < <(onevm show -x $VMID| $XPATH \
-                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/SOURCE \
-                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/CLONE )
-
-DISK_SRC="${XPATH_ELEMENTS[j++]}"
-CLONE="${XPATH_ELEMENTS[j++]}"
 
 SYSTEM_DS_PATH=$(dirname ${SRC_PATH})
 
 SYSTEM_DS_DISK_PATH="${SYSTEM_DS_PATH}/disk.${DISK_ID}"
-SYSTEM_DS_DISK_PATH_SHORT="disk.${DISK_ID}"
 
 # for TM_MAD=ssh create the snapshot always on system DS
 DISK_PATH="${SYSTEM_DS_DISK_PATH}"
