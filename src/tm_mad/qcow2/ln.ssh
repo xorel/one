@@ -91,6 +91,8 @@ mkdir -p "${DST_SNAP_DIR}"
 
 cd "${DST_SNAP_DIR}"
 $SCP_CMD
+
+rm -f "${DST_FILE}.snap"
 ln -sf "." "${DST_FILE}.snap"
 
 for SNAP_ID in \$(find * -maxdepth 0 -type f -print); do
@@ -106,6 +108,7 @@ done
 
 SNAP="\$(ls | grep '^[[:digit:]]*$' | sort -n | tail -n 1 || :)"
 cd ..
+rm -f "${DST_FILE}"
 ln -sf "${DST_FILE}.snap/\$SNAP" "${DST_FILE}"
 
 EOT
