@@ -40,7 +40,8 @@ module AzDriver
             sub_id         = opts[:sub_id] || '11111111-1111-1111-1111-111111111111'
             tenant_id      = opts[:tenant_id]
             client_id      = opts[:client_id]
-            client_secret  = decrypted[:secret]
+            # client_secret  = decrypted[:secret]
+            client_secret  = opts[:secret]
 
             provider = MsRestAzure::ApplicationTokenProvider.new(tenant_id, client_id, client_secret)
             credentials = MsRest::TokenCredentials.new(provider)
