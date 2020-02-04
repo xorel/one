@@ -15,7 +15,7 @@
 # limitations under the License.                                             #
 # -------------------------------------------------------------------------- #
 
-ONE_LOCATION = ENV['ONE_LOCATION']
+ONE_LOCATION = ENV['ONE_LOCATION'] if !defined?(ONE_LOCATION)
 
 if !ONE_LOCATION
     RUBY_LIB_LOCATION = '/usr/lib/one/ruby'
@@ -31,12 +31,15 @@ if File.directory?(GEMS_LOCATION)
     Gem.use_paths(GEMS_LOCATION)
 end
 
-$LOAD_PATH << LIB_LOCATION + '/ruby'
-$LOAD_PATH << LIB_LOCATION + '/ruby/az_driver'
+# $LOAD_PATH << RUBY_LIB_LOCATION + '/ruby'
+# $LOAD_PATH << RUBY_LIB_LOCATION + '/ruby/az_driver'
+$LOAD_PATH << RUBY_LIB_LOCATION + '/az_driver'
 $LOAD_PATH << RUBY_LIB_LOCATION
 
 AZ_DRIVER_CONF = "#{ETC_LOCATION}/az_driver.conf"
 AZ_DRIVER_DEFAULT = "#{ETC_LOCATION}/az_driver.default"
+
+#File.write('/tmp/debug.log', "az_driver.rb: LOAD_PATH: #{$LOAD_PATH}", mode: 'a')
 
 # Load Azure credentials and environment
 require 'azure'
@@ -160,6 +163,7 @@ class AzureDriver
 
     # Azure constructor, loads credentials and endpoint
     def initialize(host)
+        File.write('/tmp/debug.log', "HERE 111\n", mode: 'a')
         @host = host
         @to_inst ={}
 

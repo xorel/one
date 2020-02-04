@@ -19,7 +19,7 @@ module AzDriver
         end
 
         def get(expand = nil)
-            @az_item = @client.virtual_machines.get(@group_name, @name , expand)
+            @az_item = @client.virtual_machines.get(@group_name, @name)
         end
 
         def failed?()

@@ -36,6 +36,8 @@ require 'az_driver'
 
 host = ARGV[-1]
 
+File.write('/tmp/debug.log', "POLL ARGS#{ARGV}\n", mode:'a')
+
 #az_drv = AzureDriver.new(host)
 
 begin

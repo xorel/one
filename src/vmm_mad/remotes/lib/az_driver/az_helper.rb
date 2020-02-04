@@ -29,6 +29,7 @@ module AzDriver
 
         def self.host_credentials(one_host)
             opts = {}
+            File.write('/tmp/debug.log', "ONE_HOST: #{one_host}\n", mode: 'a')
             opts[:sub_id]        = one_host["TEMPLATE/AZ_SUB"]
             opts[:client_id]     = one_host["TEMPLATE/AZ_CLIENT"]
             opts[:client_secret] = one_host["TEMPLATE/AZ_SECRET"]
@@ -96,10 +97,15 @@ module AzDriver
             az = nil
             all_az_elements = xml.root.get_elements("//USER_TEMPLATE/PUBLIC_CLOUD")
 
+            #File.write('/tmp/debug.log', "get_deployment_info1: #{all_az_elements} \n", mode:'a')
+
             # Look for an azure location
             # if we find the same LOCATION as @region name
             # means that we have the final location
             all_az_elements.each { |element|
+                #File.write('/tmp/debug.log',
+                           # "get_deployment_info2: element #{element} \n",
+                           # mode:'a')
                 type = element.elements["TYPE"].text.downcase
                 location = element.elements["LOCATION"].text.downcase rescue nil
 
@@ -127,6 +133,8 @@ module AzDriver
                 location.text = region  || host
                 az.elements << location
             end
+
+            #File.write('/tmp/debug.log', "get_deployment_info3: #{az.text} \n", mode:'a')
 
             az
         end

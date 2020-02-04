@@ -31,17 +31,18 @@ module AzDriver
             end
             token = config["ONE_KEY"]
 
-            to_decrypt = {
-                :secret => opts[:client_secret]
-            }
+            # to_decrypt = {
+            #     :secret => opts[:client_secret]
+            # }
 
-            decrypted = OpenNebula.decrypt(to_decrypt, token)
+            #decrypted = OpenNebula.decrypt(to_decrypt, token)
 
             sub_id         = opts[:sub_id] || '11111111-1111-1111-1111-111111111111'
             tenant_id      = opts[:tenant_id]
             client_id      = opts[:client_id]
             # client_secret  = decrypted[:secret]
-            client_secret  = opts[:secret]
+            #client_secret  = opts[:secret]
+            client_secret  = '3d4a4338-8a07-4eef-87e1-77c593da4f07'
 
             provider = MsRestAzure::ApplicationTokenProvider.new(tenant_id, client_id, client_secret)
             credentials = MsRest::TokenCredentials.new(provider)

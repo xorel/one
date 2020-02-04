@@ -33,6 +33,8 @@ function run_dir {
     cd $1
     for i in `ls * | grep -E -v '\.(rpmnew|rpmsave|dpkg-\w+)$'`;do
         if [ -x "$i" ]; then
+            pwd >> /tmp/debug.log
+            echo "./$i $ARGUMENT" >> /tmp/debug.log
             ./$i $ARGUMENTS
             EXIT_CODE=$?
             if [ "x$EXIT_CODE" != "x0" ]; then
