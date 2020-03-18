@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # -------------------------------------------------------------------------- #
-# Copyright 2002-2019, OpenNebula Project, OpenNebula Systems                #
+# Copyright 2002-2020, OpenNebula Project, OpenNebula Systems                #
 #                                                                            #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may    #
 # not use this file except in compliance with the License. You may obtain    #
@@ -40,12 +40,9 @@ end
 
 $LOAD_PATH << RUBY_LIB_LOCATION
 
-gem 'aws-sdk', '>= 2.0'
-
 # Load EC2 credentials and environment
 require 'yaml'
 require 'rubygems'
-require 'aws-sdk'
 require 'uri'
 require 'resolv'
 
@@ -53,23 +50,13 @@ require 'CommandManager'
 require 'scripts_common'
 require 'rexml/document'
 require 'VirtualMachineDriver'
+require 'PublicCloudDriver'
 require 'opennebula'
 
-require 'thread'
-
-begin
-    PUBLIC_CLOUD_EC2_CONF = YAML::load(File.read(EC2_DRIVER_CONF))
-rescue Exception => e
-    str_error="Unable to read '#{EC2_DRIVER_CONF}'. Invalid YAML syntax:\n" +
-                e.message + "\n********Stack trace from EC2 IM driver*********\n"
-    raise str_error
-end
 
 # The main class for the EC2 driver
-class EC2Driver
-    ACTION          = VirtualMachineDriver::ACTION
+class EC2Driver < PublicCloudDriver
     POLL_ATTRIBUTE  = VirtualMachineDriver::POLL_ATTRIBUTE
-    VM_STATE        = VirtualMachineDriver::VM_STATE
 
     # Key that will be used to store the monitoring information in the template
     EC2_MONITOR_KEY = "EC2DRIVER_MONITOR"
@@ -233,71 +220,81 @@ class EC2Driver
     ]
 
     # EC2 constructor, loads credentials and endpoint
-    def initialize(host, host_id=nil)
+    def initialize(host)
+        @hypervizor = 'ec2'
         @host    = host
-        @host_id = host_id
 
-        @instance_types = PUBLIC_CLOUD_EC2_CONF['instance_types']
+        begin
+            @public_cloud_ec2_conf = YAML::load(File.read(EC2_DRIVER_CONF))
+        rescue Exception => e
+            str_error="Unable to read '#{EC2_DRIVER_CONF}'. Invalid YAML syntax:\n" +
+                        e.message + "\n********Stack trace from EC2 IM driver*********\n"
+            raise str_error
+        end
 
-        conn_opts = get_connect_info(host, host_id)
-        access_key = conn_opts[:access]
-        secret_key = conn_opts[:secret]
-        region_name = conn_opts[:region]
+        @instance_types = @public_cloud_ec2_conf['instance_types']
+
+        conn_opts = get_connect_info(host)
+        @access_key = conn_opts[:access]
+        @secret_key = conn_opts[:secret]
+        @region_name = conn_opts[:region]
 
         #sanitize region data
-        raise "access_key_id not defined for #{host}" if access_key.nil?
-        raise "secret_access_key not defined for #{host}" if secret_key.nil?
-        raise "region_name not defined for #{host}" if region_name.nil?
+        raise "access_key_id not defined for #{host}" if @access_key.nil?
+        raise "secret_access_key not defined for #{host}" if @secret_key.nil?
+        raise "region_name not defined for #{host}" if @region_name.nil?
+
+        # create or open cache db
+        @db = InstanceCache.new(File.join(__dir__, 'ec2_cache.db'))
+    end
+
+    def init_ec2
+        gem 'aws-sdk', '>= 2.0'
+        require 'aws-sdk'
+
+        @ec2 = Aws::EC2::Resource.new
 
         Aws.config.merge!({
-            :access_key_id      => access_key,
-            :secret_access_key  => secret_key,
-            :region             => region_name
+            :access_key_id      => @access_key,
+            :secret_access_key  => @secret_key,
+            :region             => @region_name
         })
 
-        if (proxy_uri = PUBLIC_CLOUD_EC2_CONF['proxy_uri'])
+        if (proxy_uri = @public_cloud_ec2_conf['proxy_uri'])
             Aws.config(:proxy_uri => proxy_uri)
         end
 
         if @provision_type == :host
-            if PUBLIC_CLOUD_EC2_CONF['state_wait_pm_timeout_seconds']
-                @state_change_timeout = PUBLIC_CLOUD_EC2_CONF['state_wait_pm_timeout_seconds'].to_i
+            if @public_cloud_ec2_conf['state_wait_pm_timeout_seconds']
+                @state_change_timeout = @public_cloud_ec2_conf['state_wait_pm_timeout_seconds'].to_i
             else
                 @state_change_timeout = STATE_WAIT_PM_TIMEOUT_SECONDS
             end
         else
-            @state_change_timeout = PUBLIC_CLOUD_EC2_CONF['state_wait_timeout_seconds'].to_i
+            @state_change_timeout = @public_cloud_ec2_conf['state_wait_timeout_seconds'].to_i
         end
-
-        @ec2 = Aws::EC2::Resource.new
     end
 
-    # Check the current template of host
-    # to retrieve connection information
-    # needed for Amazon
-    def get_connect_info(host, host_id)
+    # Check the current template of host to retrieve connection information
+    # needed for Amazon, plus store some other values
+    def get_connect_info(host)
         conn_opts = {}
         client    = OpenNebula::Client.new
 
-        if host.is_a?(String)
-            if !host_id
-                pool = OpenNebula::HostPool.new(client)
-                pool.info
-                objects = pool.select {|object| object.name==host }
-                host_id = objects.first.id
-                @host_id = host_id
-            end
-        else
-            host_id = host['ID']
-        end
+		pool = OpenNebula::HostPool.new(client)
+		pool.info
+		objects = pool.select {|object| object.name==host }
+		@host_id = objects.first.id
 
-        xmlhost = OpenNebula::Host.new_with_id(host_id, client)
+        xmlhost = OpenNebula::Host.new_with_id(@host_id, client)
         xmlhost.info(true)
 
+        @cw_mon_time = xmlhost["/HOST/MONITORING/CWMONTIME"]
+
         if xmlhost["TEMPLATE/PROVISION"]
-            @tmplBase = 'TEMPLATE/PROVISION'
+            tmplBase = 'TEMPLATE/PROVISION'
         else
-            @tmplBase = 'TEMPLATE'
+            tmplBase = 'TEMPLATE'
         end
 
         if xmlhost["TEMPLATE/PM_MAD"]
@@ -307,9 +304,9 @@ class EC2Driver
         end
 
         conn_opts = {
-            :access => xmlhost["#{@tmplBase}/EC2_ACCESS"],
-            :secret => xmlhost["#{@tmplBase}/EC2_SECRET"],
-            :region => xmlhost["#{@tmplBase}/REGION_NAME"]
+            :access => xmlhost["#{tmplBase}/EC2_ACCESS"],
+            :secret => xmlhost["#{tmplBase}/EC2_SECRET"],
+            :region => xmlhost["#{tmplBase}/REGION_NAME"]
         }
 
         return conn_opts
@@ -332,6 +329,8 @@ class EC2Driver
 
     # DEPLOY action, also sets ports and ip if needed
     def deploy(id, host, xml_text, lcm_state, deploy_id)
+        init_ec2
+
         # Restore if we need to
         if lcm_state != "BOOT" && lcm_state != "BOOT_FAILURE"
             restore(deploy_id)
@@ -451,6 +450,8 @@ class EC2Driver
 
     # Shutdown a EC2 instance
     def shutdown(deploy_id, lcm_state)
+        init_ec2
+
         case lcm_state
         when "SHUTDOWN"
             ec2_action(deploy_id, :terminate)
@@ -463,12 +464,16 @@ class EC2Driver
 
     # Reboot a EC2 instance
     def reboot(deploy_id)
+        init_ec2
+
         ec2_action(deploy_id, :reboot)
         wait_state('running', deploy_id)
     end
 
     # Cancel a EC2 instance
     def cancel(deploy_id, lcm_state=nil)
+        init_ec2
+
         case lcm_state
         when 'SHUTDOWN_POWEROFF', 'SHUTDOWN_UNDEPLOY'
             ec2_action(deploy_id, :stop)
@@ -481,6 +486,8 @@ class EC2Driver
 
     # Save a EC2 instance
     def save(deploy_id)
+        init_ec2
+
         wait_state('running', deploy_id)
         ec2_action(deploy_id, :stop)
         wait_state('stopped', deploy_id)
@@ -488,27 +495,21 @@ class EC2Driver
 
     # Resumes a EC2 instance
     def restore(deploy_id)
+        init_ec2
+
         ec2_action(deploy_id, :start)
         wait_state('running', deploy_id)
     end
 
     # Resets a EC2 instance
     def reset(deploy_id)
+        init_ec2
+
         ec2_action(deploy_id, :stop)
         wait_state('stopped', deploy_id)
 
         ec2_action(deploy_id, :start)
         wait_state('running', deploy_id)
-    end
-
-    # Get info (IP, and state) for a EC2 instance
-    def poll(id, deploy_id)
-        i = get_instance(deploy_id)
-        vm = OpenNebula::VirtualMachine.new_with_id(id, OpenNebula::Client.new)
-        vm.info
-        cw_mon_time = vm["LAST_POLL"] ? vm["LAST_POLL"].to_i : Time.now.to_i
-        do_cw = (Time.now.to_i - cw_mon_time) >= 360
-        puts parse_poll(i, vm, do_cw, cw_mon_time)
     end
 
     # Parse template instance type into
@@ -517,109 +518,6 @@ class EC2Driver
         return type.downcase.gsub("_", ".")
     end
 
-    # Get the info of all the EC2 instances. An EC2 instance must include
-    #   the ONE_ID tag, otherwise it will be ignored
-    def monitor_all_vms
-        totalmemory = 0
-        totalcpu = 0
-
-        # Get last cloudwatch monitoring time
-        host_obj    = OpenNebula::Host.new_with_id(@host_id,
-                                                  OpenNebula::Client.new)
-        host_obj.info
-        cw_mon_time = host_obj["/HOST/TEMPLATE/CWMONTIME"]
-        capacity = host_obj.to_hash["HOST"]["TEMPLATE"]["CAPACITY"]
-        if !capacity.nil? && Hash === capacity
-            capacity.each{ |name, value|
-                name = parse_inst_type(name)
-                cpu, mem = instance_type_capacity(name)
-                totalmemory += mem * value.to_i
-                totalcpu    += cpu * value.to_i
-            }
-        else
-            raise "you must define CAPACITY section properly! check the template"
-        end
-
-        host_info =  "HYPERVISOR=ec2\n"
-        host_info << "PUBLIC_CLOUD=YES\n"
-        host_info << "PRIORITY=-1\n"
-        host_info << "TOTALMEMORY=#{totalmemory.round}\n"
-        host_info << "TOTALCPU=#{totalcpu}\n"
-        host_info << "CPUSPEED=1000\n"
-        host_info << "HOSTNAME=\"#{@host}\"\n"
-
-        vms_info = "VM_POLL=YES\n"
-
-        #
-        # Add information for running VMs (running and pending).
-        #
-        usedcpu    = 0
-        usedmemory = 0
-
-        # Build an array of VMs and last_polls for monitoring
-        vpool      = OpenNebula::VirtualMachinePool.new(OpenNebula::Client.new,
-                                    OpenNebula::VirtualMachinePool::INFO_ALL_VM)
-        vpool.info
-        onevm_info = {}
-
-
-        if !cw_mon_time
-            cw_mon_time = Time.now.to_i
-        else
-            cw_mon_time = cw_mon_time.to_i
-        end
-
-        do_cw = (Time.now.to_i - cw_mon_time) >= 360
-        vpool.each{
-            |vm| onevm_info[vm.deploy_id] = vm
-        }
-
-
-        work_q = Queue.new
-        @ec2.instances.each{|i| work_q.push i }
-		workers = (0...20).map do
-            Thread.new do
-                begin
-                    while i = work_q.pop(true)
-                        next if i.state.name != 'pending' && i.state.name != 'running'
-                        one_id = i.tags.find {|t| t.key == 'ONE_ID' }
-                        one_id = one_id.value if one_id
-                        poll_data=parse_poll(i, onevm_info[i.id], do_cw, cw_mon_time)
-                        vm_template_to_one = vm_to_one(i)
-                        vm_template_to_one = Base64.encode64(vm_template_to_one).gsub("\n","")
-                        vms_info << "VM=[\n"
-                        vms_info << "  ID=#{one_id || -1},\n"
-                        vms_info << "  DEPLOY_ID=#{i.instance_id},\n"
-                        vms_info << "  VM_NAME=#{i.instance_id},\n"
-                        vms_info << "  IMPORT_TEMPLATE=\"#{vm_template_to_one}\",\n"
-                        vms_info << "  POLL=\"#{poll_data}\" ]\n"
-                        if one_id
-                            name = i.instance_type
-                            cpu, mem = instance_type_capacity(name)
-                            usedcpu += cpu
-                            usedmemory += mem
-                        end
-                    end
-                rescue Exception => e
-                end
-            end
-        end; "ok"
-        workers.map(&:join); "ok"
-
-        host_info << "USEDMEMORY=#{usedmemory.round}\n"
-        host_info << "USEDCPU=#{usedcpu.round}\n"
-        host_info << "FREEMEMORY=#{(totalmemory - usedmemory).round}\n"
-        host_info << "FREECPU=#{(totalcpu - usedcpu).round}\n"
-
-        if do_cw
-            host_info << "CWMONTIME=#{Time.now.to_i}"
-        else
-            host_info << "CWMONTIME=#{cw_mon_time}"
-        end
-
-        puts host_info
-        puts vms_info
-    end
 
 private
 
@@ -676,14 +574,27 @@ private
         ec2
     end
 
-    # Retrieve the vm information from the EC2 instance
-    def parse_poll(instance, onevm, do_cw, cw_mon_time)
+    # Return state of the instance (ONE state)
+    def vm_state(instance)
+        if !instance.exists?
+            'DELETED'
+        else
+            case instance.state.name
+            when 'pending', 'running'
+                'RUNNING'
+            when 'shutting-down', 'terminated'
+                'SHUTDOWN'
+            else
+                'UNKNOWN'
+            end
+        end
+    end
+
+    def get_vm_monitor_data(instance, onevm, do_cw)
         begin
             if onevm
                 if do_cw
-                    cloudwatch_str = cloudwatch_monitor_info(instance.instance_id,
-                                                           onevm,
-                                                           cw_mon_time)
+                    cloudwatch_str = cloudwatch_monitor_info(instance.instance_id, onevm)
                 else
                     previous_cpu   = onevm["MONITORING/CPU"]  || 0
                     previous_netrx = onevm["MONITORING/NETRX"] || 0
@@ -696,25 +607,8 @@ private
             end
 
             mem = onevm["TEMPLATE/MEMORY"].to_s
-            mem=mem.to_i*1024
+            mem = mem.to_i*1024
             info =  "#{POLL_ATTRIBUTE[:memory]}=#{mem} #{cloudwatch_str}"
-
-            state = ""
-            if !instance.exists?
-                state = VM_STATE[:deleted]
-            else
-                state = case instance.state.name
-                when 'pending'
-                    VM_STATE[:active]
-                when 'running'
-                    VM_STATE[:active]
-                when 'shutting-down', 'terminated'
-                    VM_STATE[:deleted]
-                else
-                    VM_STATE[:unknown]
-                end
-            end
-            info << "#{POLL_ATTRIBUTE[:state]}=#{state} "
 
             EC2_POLL_ATTRS.map { |key|
                 value = instance.send(key)
@@ -725,16 +619,105 @@ private
                         }.join(",")
                     end
 
-                    info << "AWS_#{key.to_s.upcase}=\\\"#{URI::encode(value)}\\\" "
+                    info << "AWS_#{key.to_s.upcase}=\"#{URI::encode(value)}\" "
                 end
             }
 
-            info
         rescue
             # Unkown state if exception occurs retrieving information from
             # an instance
-            "#{POLL_ATTRIBUTE[:state]}=#{VM_STATE[:unknown]} "
+            info = "#{POLL_ATTRIBUTE[:state]}=UNKNOWN"
         end
+        Base64.encode64(info).gsub("\n", '')
+    end
+
+    # Count total cpu and memory based on instance type numbers in host tmpl.
+    def get_host_capacity
+        totalmemory = 0
+        totalcpu = 0
+
+        # Get last cloudwatch monitoring time
+        host_obj    = OpenNebula::Host.new_with_id(@host_id,
+                                                  OpenNebula::Client.new)
+        host_obj.info
+
+        # TODO: Check this!
+        @cw_mon_time = host_obj["/HOST/MONITORING/CWMONTIME"]
+
+        capacity = host_obj.to_hash["HOST"]["TEMPLATE"]["CAPACITY"]
+        if !capacity.nil? && Hash === capacity
+            capacity.each{ |name, value|
+                name = parse_inst_type(name)
+                cpu, mem = instance_type_capacity(name)
+                totalmemory += mem * value.to_i
+                totalcpu    += cpu * value.to_i
+            }
+        else
+            raise "you must define CAPACITY section properly! check the template"
+        end
+        [totalcpu, totalmemory]
+    end
+
+
+    def fetch_vms_data(with_monitoring = false)
+        init_ec2
+
+        # Build an array of VMs and last_polls for monitoring
+        vpool      = OpenNebula::VirtualMachinePool.new(OpenNebula::Client.new,
+                                    OpenNebula::VirtualMachinePool::INFO_ALL_VM)
+        vpool.info
+        onevm_info = {}
+
+        if @cw_mon_time.nil?
+            @cw_mon_time = Time.now.to_i
+        else
+            @cw_mon_time = cw_mon_time.to_i
+        end
+
+        do_cw = (Time.now.to_i - @cw_mon_time) >= 360
+        vpool.each{
+            |vm| onevm_info[vm.deploy_id] = vm
+        }
+
+        work_q = Queue.new
+        @ec2.instances.each{|i| work_q.push i }
+
+        vms = []
+		workers = (0...20).map do
+            Thread.new do
+                begin
+                    while i = work_q.pop(true)
+                        vm_state = vm_state(i)
+                        next if vm_state != 'RUNNING'
+
+                        one_id = i.tags.find {|t| t.key == 'ONE_ID' }
+                        one_id = one_id.value if one_id
+
+                        vm = { :uuid      => i.instance_id,
+                               :id        => one_id || -1,
+                               :name      => i.instance_id,
+                               :type      => i.instance_type,
+                               :state     => vm_state }
+
+                        if with_monitoring
+                            vm[:monitor] = \
+                                get_vm_monitor_data(i, onevm_info[i.id], do_cw)
+                        end
+
+                        vms << vm
+                    end
+                rescue ThreadError
+                    nil
+                rescue StandardError
+                    raise
+                end
+            end
+        end
+        workers.map(&:join)
+
+    @db.insert(vms) unless vms.empty?
+
+    vms
     end
 
 
@@ -840,53 +823,25 @@ private
 
     # Retrieve the instance from EC2
     def get_instance(id)
-        begin
-            instance = @ec2.instance(id)
-            if instance.exists?
-                return instance
-            else
-                raise RuntimeError.new("Instance #{id} does not exist")
-            end
-        rescue => e
-            raise e
+        instance = @ec2.instance(id)
+        if instance.exists?
+            return instance
+        else
+            raise RuntimeError.new("Instance #{id} does not exist")
         end
-    end
 
-    # Build template for importation
-    def vm_to_one(instance)
-        cpu, mem = instance_type_capacity(instance.instance_type)
-
-        cpu  = cpu.to_f / 100
-        vcpu = cpu.ceil
-        mem  = mem.to_i / 1024 # Memory for templates expressed in MB
-
-        str = "NAME   = \"Instance from #{instance.id}\"\n"\
-              "CPU    = \"#{cpu}\"\n"\
-              "VCPU   = \"#{vcpu}\"\n"\
-              "MEMORY = \"#{mem}\"\n"\
-              "HYPERVISOR = \"ec2\"\n"\
-              "PUBLIC_CLOUD = [\n"\
-              "  TYPE  =\"ec2\",\n"\
-              "  AMI   =\"#{instance.image_id}\"\n"\
-              "]\n"\
-              "IMPORT_VM_ID    = \"#{instance.id}\"\n"\
-              "SCHED_REQUIREMENTS=\"NAME=\\\"#{@host}\\\"\"\n"\
-              "DESCRIPTION = \"Instance imported from EC2, from instance"\
-              " #{instance.id}, AMI #{instance.image_id}\"\n"
-
-        str
+        instance
     end
 
     # Extract monitoring information from Cloud Watch
     # CPU, NETTX and NETRX
-    def cloudwatch_monitor_info(id, onevm, cw_mon_time)
+    def cloudwatch_monitor_info(id, onevm)
         cw=Aws::CloudWatch::Client.new
 
         # CPU
         begin
             cpu = get_cloudwatch_metric(cw,
                                         "CPUUtilization",
-                                        cw_mon_time,
                                         ["Average"],
                                          "Percent",
                                          id)
@@ -905,7 +860,6 @@ private
         begin
             nettx_dp = get_cloudwatch_metric(cw,
                                              "NetworkOut",
-                                             cw_mon_time,
                                              ["Sum"],
                                              "Bytes",
                                              id)[:datapoints]
@@ -924,7 +878,6 @@ private
         begin
             netrx_dp = get_cloudwatch_metric(cw,
                                              "NetworkIn",
-                                             cw_mon_time,
                                              ["Sum"],
                                              "Bytes",
                                              id)[:datapoints]
@@ -942,9 +895,9 @@ private
     end
 
     # Get metric from AWS/EC2 namespace from the last poll
-    def get_cloudwatch_metric(cw, metric_name, last_poll, statistics, units, id)
+    def get_cloudwatch_metric(cw, metric_name, statistics, units, id)
         dt = 60                              # period
-        t0 = (Time.at(last_poll.to_i)-65)    # last poll time
+        t0 = (Time.at(@cw_mon_time.to_i)-65)    # last poll time
         t = (Time.now-60)                    # actual time
 
         while ((t - t0)/dt >= 1440) do dt+=60 end
@@ -1000,6 +953,32 @@ private
         onegate_token = cipher.update(str_to_encrypt)
         onegate_token << cipher.final
 
-        onegate_token_64 = Base64.encode64(onegate_token).chop
+        Base64.encode64(onegate_token).chop
     end
+
+end
+
+############################################################################
+#  Module Interface
+#  Interface for probe_db - VirtualMachineDB
+############################################################################
+module DomainList
+
+    def self.state_info(*args)
+        ec2 = EC2Driver.new(*args)
+
+        vms = ec2.get_vms_data
+
+        info = {}
+        vms.each do |vm|
+            info[vm[:uuid]] = { :id     => vm[:id],
+                                :uuid   => vm[:uuid],
+                                :name   => vm[:name],
+                                :state  => vm[:state],
+                                :hyperv => 'ec2' }
+        end
+
+        info
+    end
+
 end

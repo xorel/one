@@ -19,6 +19,8 @@ share/doc/one/html
 src/vmm_mad/remotes/lib/lxd/svncterm_server/genfont
 src/vmm_mad/remotes/lib/lxd/svncterm_server/svncterm_server
 src/im_mad/remotes/status.db
+src/vmm_mad/remotes/az/azure_cache.db
+src/vmm_mad/remotes/ec2/ec2_cache.db
 
 *.class
 src/oca/java/bin

@@ -35,12 +35,11 @@ $LOAD_PATH << RUBY_LIB_LOCATION
 require 'ec2_driver'
 
 host    = ARGV[-1]
-host_id = ARGV[-2]
-ec2_drv = EC2Driver.new(host, host_id)
+ec2_drv = EC2Driver.new(host)
 
 begin
-    ec2_drv.monitor_all_vms
+    puts ec2_drv.probe_vm_monitor
 rescue Exception => e
 
-    OpenNebula.handle_driver_exception("im poll", e, host)
+    OpenNebula.handle_driver_exception("im probe_vm_monitor", e, host)
 end

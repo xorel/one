@@ -32,15 +32,17 @@ end
 
 $LOAD_PATH << RUBY_LIB_LOCATION
 
-require 'ec2_driver'
+require 'az_driver'
+require_relative '../../../lib/probe_db'
 
-host    = ARGV[-1]
-host_id = ARGV[-2]
-ec2_drv = EC2Driver.new(host, host_id)
+host = ARGV[-1]
 
 begin
-    ec2_drv.monitor_all_vms
-rescue Exception => e
-
-    OpenNebula.handle_driver_exception("im poll", e, host)
+    vmdb = VirtualMachineDB.new('az',
+                                :missing_state => 'UNKNOWN',
+                                :sync => 180)
+    vmdb.purge
+    puts vmdb.to_status(host)
+rescue => e
+    OpenNebula.handle_driver_exception("im probe_vm_status", e, host)
 end

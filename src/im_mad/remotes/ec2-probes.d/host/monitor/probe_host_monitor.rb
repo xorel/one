@@ -32,13 +32,15 @@ end
 
 $LOAD_PATH << RUBY_LIB_LOCATION
 
-require 'az_driver'
+require 'ec2_driver'
 
-host = ARGV[-1]
-az_drv = AzureDriver.new(host)
+host    = ARGV[-1]
+host_id = ARGV[-2]
+ec2_drv = EC2Driver.new(host)
 
 begin
-    az_drv.monitor_all_vms
-rescue => e
-    OpenNebula.handle_driver_exception("im poll", e, host)
+    puts ec2_drv.probe_host_monitor
+rescue Exception => e
+
+    OpenNebula.handle_driver_exception("im probe_host_monitor", e, host)
 end

@@ -16,14 +16,14 @@
 # limitations under the License.                                             #
 #--------------------------------------------------------------------------- #
 
-ONE_LOCATION = ENV['ONE_LOCATION']
+ONE_LOCATION = ENV['ONE_LOCATION'] if !defined?(ONE_LOCATION)
 
 if !ONE_LOCATION
-    RUBY_LIB_LOCATION = '/usr/lib/one/ruby'
-    GEMS_LOCATION     = '/usr/share/one/gems'
+    RUBY_LIB_LOCATION = '/usr/lib/one/ruby' if !defined?(RUBY_LIB_LOCATION)
+    GEMS_LOCATION     = '/usr/share/one/gems' if !defined?(GEMS_LOCATION)
 else
-    RUBY_LIB_LOCATION = ONE_LOCATION + '/lib/ruby'
-    GEMS_LOCATION     = ONE_LOCATION + '/share/gems'
+    RUBY_LIB_LOCATION = ONE_LOCATION + '/lib/ruby' if !defined?(RUBY_LIB_LOCATION)
+    GEMS_LOCATION     = ONE_LOCATION + '/share/gems' if !defined?(GEMS_LOCATION)
 end
 
 if File.directory?(GEMS_LOCATION)
@@ -89,7 +89,7 @@ class VirtualMachineDB
 
     # Returns the VM status that changed compared to the DB info as well
     # as VMs that have been reported as missing more than missing_times
-    def to_status
+    def to_status(*args)
         time = Time.now.to_i
         last = @db.execute("SELECT MAX(timestamp) from #{@dataset}").flatten![0]
         last ||= 0
@@ -99,7 +99,7 @@ class VirtualMachineDB
         status_str  = ''
         monitor_ids = []
 
-        vms  = DomainList.state_info
+        vms  = DomainList.state_info(*args)
 
         # ----------------------------------------------------------------------
         # report state changes in vms
@@ -191,14 +191,14 @@ class VirtualMachineDB
 
     private
 
-    def sync_status
+    def sync_status(*args)
         time = Time.now.to_i
 
         @db.execute("DELETE FROM #{@dataset}")
 
         status_str = "SYNC_STATE=yes\nMISSING_STATE=#{@conf[:missing_state]}\n"
 
-        DomainList.state_info.each do |uuid, vm|
+        DomainList.state_info(*args).each do |uuid, vm|
             @db.execute(
                 "INSERT INTO #{@dataset} VALUES (?, ?, ?, ?, ?, ?, ?)",
                 [uuid,
