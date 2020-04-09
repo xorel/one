@@ -60,10 +60,10 @@ class One2OneDriver < PublicCloudDriver
     REMOTE_NAME_PREFIX = "remote-opennebula-"
 
     # constructor, loads credentials and endpoint
-    def initialize(host)
+    def initialize(host, id = nil)
         @hypervisor = 'opennebula'
         @host = host
-        @xmlhost = host_info
+        @xmlhost = host_info(host, id)
         @public_cloud_conf = {}
 
         # create or open cache db
@@ -180,7 +180,7 @@ class One2OneDriver < PublicCloudDriver
         [0, 0]
     end
 
-    def fetch_vms_data(with_monitoring = false)
+    def fetch_vms_data(with_monitoring: false)
         vmpool = OpenNebula::VirtualMachinePool.new(@client,
             OpenNebula::VirtualMachinePool::INFO_ALL_VM)
         vmpool.info
@@ -545,8 +545,8 @@ end
 ############################################################################
 module DomainList
 
-    def self.state_info(*args)
-        one2one_drv = One2OneDriver.new(*args)
+    def self.state_info(name, id)
+        one2one_drv = One2OneDriver.new(name, id)
 
         vms = one2one_drv.get_vms_data
 

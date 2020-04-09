@@ -34,8 +34,9 @@ $LOAD_PATH << RUBY_LIB_LOCATION
 
 require 'opennebula_driver'
 host    = ARGV[-1]
+host_id = ARGV[-2]
 
-one2one_drv = One2OneDriver.new(host)
+one2one_drv = One2OneDriver.new(host, host_id)
 
 begin
     puts one2one_drv.probe_vm_monitor
