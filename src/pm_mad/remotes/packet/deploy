@@ -46,12 +46,10 @@ begin
     packet_drv = PacketDriver.new(xhost)
     puts packet_drv.deploy_host(xhost)
 
-rescue Exception => e
-    STDERR.puts error_message(<<EOT)
-Deploy of Packet host with #{dfile} failed due to "#{e.message}"
-#{e.backtrace}"
-EOT
+rescue StandardError => e
+    STDERR.puts error_message("Deploy of Packet host with #{dfile} " \
+                              "failed due to \"#{e.message}\" " \
+                              "#{e.backtrace}")
 
     exit(-1)
 end
-
