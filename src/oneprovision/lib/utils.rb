@@ -213,6 +213,7 @@ module OneProvision
             #
             # @return [Hash]       Configuration content
             def read_config(name)
+
                 begin
                     yaml = YAML.load_file(name)
                 rescue StandardError => e
