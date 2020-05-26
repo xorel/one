@@ -43,6 +43,14 @@ require 'zlib'
 require 'base64'
 require 'rexml/document'
 
+def debug(msg)
+    t = Time.now
+    t.to_s
+    File.write('/tmp/debug.log',
+               "#{t.strftime("%Y-%m-%d %H:%M:%S")} #{msg}\n",
+               mode: 'a')
+end
+
 # The SSH Information Manager Driver
 class InformationManagerDriver < OpenNebulaDriver
 
@@ -62,6 +70,8 @@ class InformationManagerDriver < OpenNebulaDriver
     end
 
     def start_monitor(_not_used, _hostid, zaction64)
+        debug "one_im_exec.rb: start_monitor start"
+
         rc, input = parse_input(:START_MONITOR, zaction64)
 
         return if rc == -1
@@ -81,6 +91,8 @@ class InformationManagerDriver < OpenNebulaDriver
                   :script_name => 'run_monitord_client',
                   :zip => true,
                   :base64 => true)
+
+        debug "one_im_exec.rb: start_monitor end"
     end
 
     def stop_monitor(_not_used, _hostid, zaction64)

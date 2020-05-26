@@ -25,6 +25,16 @@ require 'rexml/document'
 require_relative '../lib/probe_db'
 require_relative '../lib/monitord_client'
 
+def debug(msg)
+    t = Time.now
+    t.to_s
+    File.write('/tmp/debug.log',
+               "#{t.strftime("%Y-%m-%d %H:%M:%S")} #{msg}\n",
+               mode: 'a')
+end
+
+debug "monitord-client start"
+
 #-------------------------------------------------------------------------------
 #  This class wraps the execution of a probe directory and sends data to
 #  monitord (optionally)
@@ -89,6 +99,7 @@ class ProbeRunner
 
     # Singleton call for run_probes method
     def self.run_once(hyperv, probes, stdin)
+        debug "run_once: start"
         rc = 0
         ret = '<MONITOR_MESSAGES>'
 
@@ -106,6 +117,8 @@ class ProbeRunner
 
         ret+='</MONITOR_MESSAGES>'
 
+        debug "run_once: stop"
+
         [rc, ret]
     end
 
@@ -119,6 +132,7 @@ class ProbeRunner
         runner = ProbeRunner.new(hyperv, path, stdin)
 
         loop do
+            debug "monitor_loop probe:#{path}"
             sleep_time = 0
 
             ts = Time.now
@@ -156,7 +170,11 @@ end
 #-------------------------------------------------------------------------------
 # Configuration (from monitord)
 #-------------------------------------------------------------------------------
+debug "monitord-client STDIN.read"
+
 xml_txt = STDIN.read
+
+debug "monitord-client parse conf"
 
 begin
     hyperv = ARGV[0].split(' ')[0]
@@ -242,14 +260,20 @@ end
 # Run configuration probes and send information to monitord
 #-------------------------------------------------------------------------------
 
+debug "MonitorClient.new"
+
 client = MonitorClient.new(host, port, hostid, :pubkey => pubkey)
 
 rc, dt = ProbeRunner.run_once(hyperv, probes, xml_txt)
 puts dt
 
+debug "run_once sending data: [#{dt}]"
+
 STDOUT.flush
 
 exit(-1) if rc == -1
+
+debug "monitord-client continue"
 
 #-------------------------------------------------------------------------------
 # Start monitor threads and shepherd
@@ -271,6 +295,9 @@ probes.each do |msg_type, conf|
                                  conf[:path],
                                  conf[:period],
                                  xml_txt) do |result, da|
+
+            debug "monitor_loop #{conf[:path]} sending data: [#{da}]"
+
             da.strip!
             next if da.empty?
 
@@ -280,3 +307,4 @@ probes.each do |msg_type, conf|
 end
 
 threads.each {|thr| thr.join }
+debug "END ERROR"

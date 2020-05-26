@@ -168,8 +168,10 @@ class Domain < BaseDomain
             end
 
             state = STATE_MAP['paused'][reason] || 'UNKNOWN'
+            File.write('/tmp/debug.log', "state: paused, reason: #{reason}\n", mode:'a') if state == 'UNKNOWN'
         else
             state = STATE_MAP[hash['STATE']] || 'UNKNOWN'
+            File.write('/tmp/debug.log', "state: #{hash['STATE']}\n", mode:'a') if state == 'UNKNOWN'
         end
 
         @vm[:state]  = state
